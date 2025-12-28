@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>账号密码管理器</title>
-    <link rel="icon" href="images/book.png" type="image/x-icon">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔐</text></svg>">
     <style>
         /* 命中搜索的卡片 */
         .account-card.hit {
@@ -40,7 +40,7 @@
             cursor: pointer;
             opacity: 0.6;
             transition: all 0.15s ease;
-            z-index: 10; /* 确保图标在上层 */
+            z-index: 10; 
         }
 
         .link-icon:hover {
@@ -48,9 +48,8 @@
             transform: translateY(-50%) scale(1.3);
         }
         
-        /* 减少链接图标点击时的下移距离 */
         .link-icon:active {
-            transform: translateY(-50%) scale(0.97); /* 从 0.94 改为 0.97，移动距离更小 */
+            transform: translateY(-50%) scale(0.97);
         }
 
         .link-icon svg {
@@ -59,9 +58,9 @@
             fill: #2e7d32;
         }
 
-        /* 悬浮地址气泡 - 修改为视口级别定位 */
+        /* 悬浮地址气泡 */
         .url-tooltip {
-            position: fixed; /* 改为 fixed，相对于视口 */
+            position: fixed;
             background: rgba(50, 50, 50, 0.95);
             color: #fff;
             padding: 8px 12px;
@@ -71,7 +70,7 @@
             opacity: 0;
             pointer-events: none;
             transition: opacity 0.2s;
-            z-index: 99999; /* 非常高的z-index确保在最顶层 */
+            z-index: 99999;
             box-shadow: 0 4px 15px rgba(0,0,0,0.2);
             max-width: 400px;
             overflow: hidden;
@@ -102,7 +101,6 @@
             margin: 0 auto;
         }
 
-        /* 三列布局：左侧标题，中间时间+搜索框，右侧空白 */
         .header {
             display: grid;
             grid-template-columns: auto auto 1fr;
@@ -119,17 +117,16 @@
 
         .time-search-container {
             display: flex;
-            align-items: left;
-            gap: 7px;
-            margin-left: 140px; /* 向右移动px */
-            
+            align-items: center;
+            gap: 15px;
+            margin-left: 40px;
         }
 
         .clock-container {
             background: rgba(255, 255, 255, 0.6);
             backdrop-filter: blur(10px);
             border-radius: 20px;
-            padding: 10px 20px; /* 高度调短 */
+            padding: 10px 20px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.05);
             border: 1px solid rgba(255,255,255,0.8);
         }
@@ -152,34 +149,29 @@
             text-align: center;
         }
 
-        /* 搜索框相关样式 - 修改 */
         .search-container {
             position: relative;
             display: flex;
             align-items: center;
-            margin-left: 0.2cm;
         }
 
         .search-input {
-            padding: 6px 35px 6px 35px; /* 左侧留出搜索图标空间，右侧留出清空图标空间 */
+            padding: 6px 35px 6px 35px;
             border: 2px solid #c8e6c9;
             border-radius: 10px;
             font-size: 0.9rem;
             width: 170px;
             height: 37px;
             transition: all 0.2s ease;
-            font-family: 'Microsoft YaHei', 'Arial', sans-serif;
             background-color: rgba(255, 255, 255, 0.95);
         }
 
         .search-input:focus {
             outline: none;
             border-color: #4caf50;
-            box-shadow: 0 0 5px rgba(76, 175, 80, 0.3);
-            background-color: white;
+            width: 220px;
         }
 
-        /* 搜索图标 */
         .search-icon {
             position: absolute;
             left: 10px;
@@ -197,49 +189,28 @@
             fill: #2e7d32;
         }
 
-        /* 清空按钮 - 修改为在输入框内部 */
         .clear-button {
             position: absolute;
             right: 8px;
             top: 50%;
             transform: translateY(-50%);
-            background: none;
+            background: #ff6b6b;
             border: none;
             color: #fff;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 12px;
             width: 18px;
             height: 18px;
-            display: flex;
+            display: none;
             align-items: center;
             justify-content: center;
-            transition: all 0.2s ease;
-            opacity: 0;
-            visibility: hidden;
             border-radius: 50%;
-            background-color: #ff6b6b;
         }
 
-        .search-input:not(:placeholder-shown) + .clear-button {
-            opacity: 0.7;
-            visibility: visible;
-        }
-
-        .clear-button:hover {
-            opacity: 1 !important;
-            color: #fff;
-            background-color: #ff5252;
-            transform: translateY(-50%) scale(1.1);
-        }
-
-        .clear-button:active {
-            transform: translateY(-50%) scale(0.95);
-        }
-        
         .highlight {
             background-color: #ffeb3b;
-            padding: 2px 4px;
-            border-radius: 4px;
+            padding: 2px 2px;
+            border-radius: 2px;
             font-weight: bold;
         }
 
@@ -253,166 +224,62 @@
         .account-card {
             background: rgba(255, 255, 255, 0.95);
             border-radius: 15px;
-            padding: 8px;
+            padding: 12px;
             box-shadow: 0 8px 25px rgba(0,0,0,0.1);
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             border: 1px solid rgba(255,255,255,0.5);
             position: relative;
-            overflow: hidden;
             cursor: move;
         }
 
-        .account-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-            transition: left 0.5s;
-        }
-
-        .account-card:hover::before {
-            left: 100%;
-        }
-
         .account-card:hover {
-            transform: translateY(-5px) scale(1.01);
+            transform: translateY(-5px);
             box-shadow: 0 15px 40px rgba(0,0,0,0.2);
         }
-        
-        .account-card.dim:hover,
-        .account-card.hit:hover {
-            transform: none;
-        }
 
-        /* 修改系统名称样式：左对齐并添加左边距 */
         .system-name {
             font-size: 1.2rem;
             font-weight: bold;
             color: #2e7d32;
-            margin-bottom: 6px;
-            padding-right: 80px; /* 增加右边距为更多图标留空间 */
+            margin-bottom: 10px;
+            padding-right: 90px;
             padding-left: 10px;
             position: relative;
-            text-align: left;
-            padding-bottom: 6px;
+            padding-bottom: 8px;
             border-bottom: 2px solid #c8e6c9;
-            line-height: 1.4;
         }
 
-        /* 复制全部的小图标（放在系统名称右侧） */
-        .copy-all-icon {
+        .copy-all-icon, .edit-icon, .delete-icon {
             position: absolute;
-            right: 8px;
             top: 50%;
             transform: translateY(-50%);
-            width: 20px;
-            height: 20px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 6px;
             cursor: pointer;
-            background: transparent;
-            border: none;
-            transition: transform 0.15s ease, opacity 0.2s;
             opacity: 0.6;
+            transition: all 0.2s;
         }
 
-        .copy-all-icon:hover {
-            transform: translateY(-50%) scale(1.3);
+        .copy-all-icon { right: 8px; }
+        .edit-icon { right: 34px; }
+        .delete-icon { right: 60px; }
+
+        .copy-all-icon:hover, .edit-icon:hover, .delete-icon:hover {
             opacity: 1;
-        }
-        
-        .copy-all-icon:active {
-            transform: translateY(-50%) scale(0.97);
-        }
-
-        .copy-all-icon svg {
-            width: 16px;
-            height: 16px;
-            fill: #2e7d32;
-        }
-
-        /* 编辑图标 */
-        .edit-icon {
-            position: absolute;
-            right: 34px; /* 在复制图标左侧 */
-            top: 50%;
-            transform: translateY(-50%);
-            width: 20px;
-            height: 20px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 6px;
-            cursor: pointer;
-            background: transparent;
-            border: none;
-            transition: transform 0.15s ease, opacity 0.2s;
-            opacity: 0.6;
-            z-index: 11; /* 在链接图标上层 */
-        }
-
-        .edit-icon:hover {
-            transform: translateY(-50%) scale(1.3);
-            opacity: 1;
-        }
-
-        .edit-icon svg {
-            width: 16px;
-            height: 16px;
-            fill: #1976d2;
-        }
-
-        /* 删除图标 */
-        .delete-icon {
-            position: absolute;
-            right: 60px; /* 在编辑图标左侧 */
-            top: 50%;
-            transform: translateY(-50%);
-            width: 20px;
-            height: 20px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 6px;
-            cursor: pointer;
-            background: transparent;
-            border: none;
-            transition: transform 0.15s ease, opacity 0.2s;
-            opacity: 0.6;
-            z-index: 11;
-        }
-
-        .delete-icon:hover {
-            transform: translateY(-50%) scale(1.3);
-            opacity: 1;
-        }
-
-        .delete-icon svg {
-            width: 16px;
-            height: 16px;
-            fill: #d32f2f;
+            transform: translateY(-50%) scale(1.2);
         }
 
         .account-item {
             display: flex;
             align-items: center;
-            margin-bottom: 8px;
+            margin-top: 8px;
             gap: 10px;
-            padding-left: 10px;
-            padding-right: 10px;
+            padding: 0 10px;
         }
 
         .item-label {
             font-size: 0.9rem;
             color: #4caf50;
             font-weight: 500;
-            min-width: 40px;
-            flex-shrink: 0;
+            width: 40px;
         }
 
         .item-value {
@@ -421,40 +288,24 @@
             border-radius: 8px;
             padding: 6px 10px;
             cursor: pointer;
-            transition: all 0.2s ease;
+            flex: 1;
             font-family: 'Courier New', monospace;
             font-size: 0.9rem;
-            position: relative;
             word-break: break-all;
-            flex: 1;
-        }
-
-        .item-value:hover {
-            border-color: #4caf50;
-            background: #e8f5e8;
-            transform: scale(1.02);
-            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.15);
-        }
-        
-        .item-value:active {
-            transform: scale(0.98);
-            box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+            position: relative;
         }
 
         .copy-hint {
             position: absolute;
+            right: 5px;
             top: 50%;
-            right: 10px;
             transform: translateY(-50%);
-            font-size: 0.7rem;
+            font-size: 10px;
             color: #81c784;
             opacity: 0;
-            transition: opacity 0.2s;
         }
 
-        .item-value:hover .copy-hint {
-            opacity: 1;
-        }
+        .item-value:hover .copy-hint { opacity: 1; }
 
         .toast {
             position: fixed;
@@ -462,127 +313,43 @@
             right: 20px;
             background: #4caf50;
             color: white;
-            padding: 12px 20px;
+            padding: 12px 25px;
             border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            transform: translateX(400px);
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            z-index: 1000;
-            font-weight: 500;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            transform: translateX(200%);
+            transition: transform 0.3s;
+            z-index: 100000;
         }
 
-        .toast.show {
-            transform: translateX(0);
-        }
+        .toast.show { transform: translateX(0); }
 
-        /* 模态框样式 */
+        /* 模态框 */
         .modal-overlay {
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
+            inset: 0;
+            background: rgba(0,0,0,0.5);
             display: none;
             justify-content: center;
             align-items: center;
             z-index: 10000;
         }
-
-        .modal-overlay.show {
-            display: flex;
-        }
-
+        .modal-overlay.show { display: flex; }
         .modal {
             background: white;
-            border-radius: 15px;
             padding: 25px;
+            border-radius: 15px;
             width: 90%;
-            max-width: 500px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            max-width: 450px;
         }
-
-        .modal h2 {
-            color: #2e7d32;
-            margin-bottom: 20px;
-            font-size: 1.5rem;
-        }
-
-        .modal form {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-
-        .form-group label {
-            color: #2e7d32;
-            font-weight: 500;
-            font-size: 0.9rem;
-        }
-
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; color: #2e7d32; }
         .form-group input {
+            width: 100%;
             padding: 10px;
             border: 2px solid #c8e6c9;
             border-radius: 8px;
-            font-size: 0.95rem;
-            transition: border-color 0.2s;
         }
 
-        .form-group input:focus {
-            outline: none;
-            border-color: #4caf50;
-        }
-
-        .modal-buttons {
-            display: flex;
-            gap: 10px;
-            justify-content: flex-end;
-            margin-top: 20px;
-        }
-
-        .modal-btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 8px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .modal-btn.save {
-            background: #4caf50;
-            color: white;
-        }
-
-        .modal-btn.save:hover {
-            background: #388e3c;
-        }
-
-        .modal-btn.cancel {
-            background: #f5f5f5;
-            color: #666;
-        }
-
-        .modal-btn.cancel:hover {
-            background: #e0e0e0;
-        }
-
-        .modal-btn.delete {
-            background: #f44336;
-            color: white;
-        }
-
-        .modal-btn.delete:hover {
-            background: #d32f2f;
-        }
-
-        /* 新增账号按钮 */
         .add-btn {
             position: fixed;
             bottom: 30px;
@@ -593,20 +360,11 @@
             background: #4caf50;
             color: white;
             border: none;
-            font-size: 28px;
+            font-size: 30px;
             cursor: pointer;
-            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
-            transition: all 0.3s;
-            z-index: 1000;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
 
-        .add-btn:hover {
-            background: #388e3c;
-            transform: scale(1.1);
-            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
-        }
-
-        /* 保存排序按钮 */
         .save-order-btn {
             position: fixed;
             bottom: 30px;
@@ -614,97 +372,14 @@
             padding: 10px 20px;
             background: #2196f3;
             color: white;
+            border-radius: 20px;
             border: none;
-            border-radius: 25px;
-            cursor: pointer;
-            font-weight: 500;
-            box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);
-            transition: all 0.3s;
             display: none;
-            z-index: 1000;
+            cursor: pointer;
         }
+        .save-order-btn.show { display: block; }
 
-        .save-order-btn.show {
-            display: block;
-        }
-
-        .save-order-btn:hover {
-            background: #1976d2;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(33, 150, 243, 0.4);
-        }
-
-        /* 微小 pulse 动画效果 */
-        @keyframes pulseAnim {
-            0% { transform: translateY(-50%) scale(1); }
-            50% { transform: translateY(-50%) scale(1.02); }
-            100% { transform: translateY(-50%) scale(1); }
-        }
-        
-        .link-icon.pulse, .copy-all-icon.pulse, .edit-icon.pulse, .delete-icon.pulse {
-            animation: pulseAnim 300ms ease-in-out;
-        }
-
-        @media (max-width: 768px) {
-            .header {
-                position: relative;
-                display: flex;
-                align-items: center;
-                height: 64px;
-            }
-
-            .header h1 {
-                font-size: 2.5rem;
-                text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
-            }
-
-            .time-search-container {
-                position: fixed;
-                left: 50vw;
-                top: 32px;
-                transform: translateX(-50%);
-                display: flex;
-                align-items: center;
-                z-index: 100;
-            }
-
-            .accounts-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .time-display {
-                font-size: 1.5rem;
-            }
-            
-            .header h1 {
-                font-size: 2rem;
-            }
-            
-            .system-name {
-                padding-right: 90px;
-                padding-left: 12px;
-            }
-            
-            .account-item {
-                padding-left: 12px;
-                padding-right: 12px;
-            }
-            
-            .add-btn {
-                bottom: 20px;
-                right: 20px;
-                width: 50px;
-                height: 50px;
-                font-size: 24px;
-            }
-            
-            .save-order-btn {
-                bottom: 20px;
-                left: 20px;
-                font-size: 0.9rem;
-                padding: 8px 16px;
-            }
-        }
+        svg { width: 18px; height: 18px; fill: currentColor; }
     </style>
 </head>
 <body>
@@ -715,733 +390,276 @@
                 <div class="clock-container">
                     <div class="date-display">
                         <div class="time-display" id="timeDisplay">00:00:00</div>
-                        <div id="solarDate">2024年01月01日 星期一</div>
+                        <div id="solarDate">加载中...</div>
                     </div>
                 </div>
                 <div class="search-container">
-                    <!-- 搜索图标 -->
                     <div class="search-icon">
-                        <svg viewBox="0 0 24 24">
-                            <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
-                        </svg>
+                        <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
                     </div>
-                    
-                    <!-- 搜索输入框 -->
-                    <input type="text" class="search-input" id="searchInput" placeholder="请搜索...">
-                    
-                    <!-- 清空按钮 -->
-                    <button class="clear-button" id="clearButton" title="清空搜索">✕</button>
+                    <input type="text" class="search-input" id="searchInput" placeholder="搜索系统/账号...">
+                    <button class="clear-button" id="clearButton">✕</button>
                 </div>
             </div>
-            <div></div>
         </div>
 
-        <div class="accounts-grid" id="accountsGrid">
-            <!-- 账号卡片通过JavaScript动态生成 -->
-        </div>
+        <div class="accounts-grid" id="accountsGrid"></div>
     </div>
 
-    <!-- 新增/编辑模态框 -->
     <div class="modal-overlay" id="modalOverlay">
         <div class="modal">
-            <h2 id="modalTitle">新增账号</h2>
+            <h2 id="modalTitle" style="margin-bottom:20px; color:#2e7d32">新增账号</h2>
             <form id="accountForm">
                 <input type="hidden" id="accountId">
-                <div class="form-group">
-                    <label for="system">系统名称 *</label>
-                    <input type="text" id="system" required>
-                </div>
-                <div class="form-group">
-                    <label for="username">账号 *</label>
-                    <input type="text" id="username" required>
-                </div>
-                <div class="form-group">
-                    <label for="password">密码 *</label>
-                    <input type="text" id="password" required>
-                </div>
-                <div class="form-group">
-                    <label for="url">访问地址 (可选)</label>
-                    <input type="text" id="url">
-                </div>
-                <div class="modal-buttons">
-                    <button type="button" class="modal-btn cancel" id="cancelBtn">取消</button>
-                    <button type="submit" class="modal-btn save">保存</button>
+                <div class="form-group"><label>系统名称 *</label><input type="text" id="system" required></div>
+                <div class="form-group"><label>账号 *</label><input type="text" id="username" required></div>
+                <div class="form-group"><label>密码 *</label><input type="text" id="password" required></div>
+                <div class="form-group"><label>访问地址 (可选)</label><input type="text" id="url"></div>
+                <div style="display:flex; gap:10px; justify-content: flex-end; margin-top:20px;">
+                    <button type="button" class="modal-btn" onclick="closeModal()" style="padding:8px 15px; border:none; background:#eee; border-radius:5px; cursor:pointer">取消</button>
+                    <button type="submit" style="padding:8px 15px; border:none; background:#4caf50; color:white; border-radius:5px; cursor:pointer">保存</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- 删除确认模态框 -->
     <div class="modal-overlay" id="deleteModalOverlay">
         <div class="modal">
-            <h2>确认删除</h2>
-            <p>确定要删除账号 <strong id="deleteSystemName"></strong> 吗？此操作不可撤销。</p>
-            <div class="modal-buttons">
-                <button type="button" class="modal-btn cancel" id="cancelDeleteBtn">取消</button>
-                <button type="button" class="modal-btn delete" id="confirmDeleteBtn">删除</button>
+            <h3>确认删除</h3>
+            <p style="margin: 15px 0;">确定要删除 <strong id="deleteSystemName"></strong> 吗？</p>
+            <div style="display:flex; gap:10px; justify-content: flex-end;">
+                <button type="button" onclick="closeDeleteModal()" style="padding:8px 15px; border:none; background:#eee; border-radius:5px; cursor:pointer">取消</button>
+                <button type="button" id="confirmDeleteBtn" style="padding:8px 15px; border:none; background:#f44336; color:white; border-radius:5px; cursor:pointer">确认删除</button>
             </div>
         </div>
     </div>
 
-    <!-- 浮动按钮 -->
-    <button class="add-btn" id="addBtn" title="新增账号">+</button>
+    <button class="add-btn" id="addBtn">+</button>
     <button class="save-order-btn" id="saveOrderBtn">💾 保存排序</button>
-
     <div class="toast" id="toast"></div>
     <div id="globalUrlTooltip" class="url-tooltip"></div>
 
-    <!-- 引入 Supabase 客户端库 -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        // 修复：移除重复的 const supabase 声明，只使用一个全局变量
-        // Supabase 配置
+        // 1. 修复变量冲突：将 supabase 改名为 supabaseClient
         const SUPABASE_URL = 'https://lxuomiimbnterkxzquba.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx4dW9taWltYm50ZXJreHpxdWJhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5MzYyNDksImV4cCI6MjA4MjUxMjI0OX0.LZOFm_VS0y5UF0vBR8y2y90Wrq_cMmIvggnXL_JM6h0';
         
-        // 创建 Supabase 客户端 - 修复：正确的初始化方式
-        const { createClient } = window.supabase;
-        const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // 全局变量
         let accounts = [];
         let draggedCard = null;
-        let isOrderChanged = false;
         let deleteAccountId = null;
 
-        // 随机有趣提示消息
-        const messages = [
-            "复制成功!👌️", "成功复制！👏","已复制，注意保密！🛡️", "完美复制！🚀",
-        ];
-
-        // 全局悬浮提示框元素
-        const globalUrlTooltip = document.getElementById('globalUrlTooltip');
-        
-        // 页面加载时初始化
+        // 初始化
         document.addEventListener('DOMContentLoaded', () => {
             updateTime();
             setInterval(updateTime, 1000);
             loadAccounts();
-            setupEventListeners();
+            bindEvents();
         });
 
-        // 设置事件监听器
-        function setupEventListeners() {
-            // 搜索相关
-            const searchInput = document.getElementById('searchInput');
-            const clearButton = document.getElementById('clearButton');
-            
-            clearButton.addEventListener('click', clearSearch);
-            searchInput.addEventListener('keyup', (e) => {
-                if (e.key === 'Enter') performSearch();
-            });
-            searchInput.addEventListener('input', performSearch);
-            updateClearButton();
-            
-            // 模态框相关
-            const addBtn = document.getElementById('addBtn');
-            const modalOverlay = document.getElementById('modalOverlay');
-            const cancelBtn = document.getElementById('cancelBtn');
-            const accountForm = document.getElementById('accountForm');
-            const deleteModalOverlay = document.getElementById('deleteModalOverlay');
-            const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
-            const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
-            const saveOrderBtn = document.getElementById('saveOrderBtn');
-            
-            addBtn.addEventListener('click', () => openModal());
-            cancelBtn.addEventListener('click', () => closeModal());
-            modalOverlay.addEventListener('click', (e) => {
-                if (e.target === modalOverlay) closeModal();
-            });
-            
-            accountForm.addEventListener('submit', handleSaveAccount);
-            
-            // 删除确认模态框
-            cancelDeleteBtn.addEventListener('click', () => closeDeleteModal());
-            deleteModalOverlay.addEventListener('click', (e) => {
-                if (e.target === deleteModalOverlay) closeDeleteModal();
-            });
-            confirmDeleteBtn.addEventListener('click', handleDeleteAccount);
-            
-            // 保存排序按钮
-            saveOrderBtn.addEventListener('click', saveSortOrder);
-            
-            // 键盘快捷键
-            document.addEventListener('keydown', handleKeyboardShortcuts);
-        }
-
-        // 从 Supabase 加载账户数据
         async function loadAccounts() {
             try {
-                showToast('加载中...', 'info');
-                
-                const { data, error } = await supabase
+                const { data, error } = await supabaseClient
                     .from('accounts')
                     .select('*')
                     .order('sort_order', { ascending: true });
-                
-                if (error) {
-                    console.error('Supabase错误:', error);
-                    throw error;
-                }
-                
+                if (error) throw error;
                 accounts = data || [];
-                console.log('加载到的账户数据:', accounts); // 调试信息
-                generateAccountCards();
-                showToast('加载完成 ✅');
-            } catch (error) {
-                console.error('加载数据失败:', error);
-                showToast('加载失败 ❌', 'error');
+                renderCards();
+            } catch (err) {
+                console.error('加载失败:', err);
+                showToast('加载数据失败', 'error');
             }
         }
 
-        // 生成账户卡片
-        function generateAccountCards() {
+        function renderCards() {
             const grid = document.getElementById('accountsGrid');
-            grid.innerHTML = '';
+            grid.innerHTML = accounts.length ? '' : '<div style="grid-column:1/-1; text-align:center; padding:50px; color:#888;">暂无数据，请点击右下角新增</div>';
             
-            console.log('生成卡片，账户数量:', accounts.length); // 调试信息
-            
-            accounts.forEach((account, index) => {
+            accounts.forEach((acc, index) => {
                 const card = document.createElement('div');
                 card.className = 'account-card';
                 card.draggable = true;
-                card.dataset.id = account.id;
-                card.dataset.system = account.system;
-                card.dataset.username = account.username;
-                card.dataset.password = account.password;
-                card.dataset.url = account.url || '';
-                card.dataset.sortOrder = account.sort_order || index;
-
-                // 系统名称区域
-                const systemNameDiv = document.createElement('div');
-                systemNameDiv.className = 'system-name';
-                systemNameDiv.textContent = account.system;
+                card.dataset.id = acc.id;
                 
-                // 系统地址链接图标
-                if (account.url) {
-                    const linkIcon = createLinkIcon(account.url);
-                    systemNameDiv.appendChild(linkIcon);
+                card.innerHTML = `
+                    <div class="system-name">
+                        <span class="sys-text">${acc.system}</span>
+                        ${acc.url ? `<div class="link-icon" data-url="${acc.url}" title="打开链接"><svg viewBox="0 0 24 24"><path d="M3.9 12a5 5 0 0 1 5-5h4v2h-4a3 3 0 1 0 0 6h4v2h-4a5 5 0 0 1-5-5zm6-1h4v2h-4zm5-4h-4v2h4a3 3 0 1 1 0 6h-4v2h4a5 5 0 1 0 0-10z"/></svg></div>` : ''}
+                        <div class="edit-icon" onclick="openModal('${acc.id}')"><svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></div>
+                        <div class="delete-icon" onclick="openDeleteModal('${acc.id}', '${acc.system}')"><svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg></div>
+                        <div class="copy-all-icon" title="复制全部"><svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v12h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg></div>
+                    </div>
+                    <div class="account-item">
+                        <div class="item-label">账号:</div>
+                        <div class="item-value" onclick="copyText('${acc.username}', this)">${acc.username}<span class="copy-hint">复制</span></div>
+                    </div>
+                    <div class="account-item">
+                        <div class="item-label">密码:</div>
+                        <div class="item-value" onclick="copyText('${acc.password}', this)">${acc.password}<span class="copy-hint">复制</span></div>
+                    </div>
+                `;
+
+                // 拖拽逻辑
+                card.ondragstart = (e) => { draggedCard = card; card.style.opacity = '0.5'; };
+                card.ondragend = () => { draggedCard.style.opacity = '1'; };
+                card.ondragover = (e) => e.preventDefault();
+                card.ondrop = (e) => {
+                    e.preventDefault();
+                    if (draggedCard !== card) {
+                        const allCards = [...grid.children];
+                        const fromIdx = allCards.indexOf(draggedCard);
+                        const toIdx = allCards.indexOf(card);
+                        if (fromIdx < toIdx) grid.insertBefore(draggedCard, card.nextSibling);
+                        else grid.insertBefore(draggedCard, card);
+                        document.getElementById('saveOrderBtn').classList.add('show');
+                    }
+                };
+
+                // 复制全部逻辑
+                card.querySelector('.copy-all-icon').onclick = () => {
+                    const text = `系统：${acc.system}\n地址：${acc.url || '无'}\n账号：${acc.username}\n密码：${acc.password}`;
+                    copyText(text);
+                };
+
+                // 链接点击
+                const linkIcon = card.querySelector('.link-icon');
+                if (linkIcon) {
+                    linkIcon.onclick = () => {
+                        window.open(acc.url.startsWith('http') ? acc.url : 'http://' + acc.url, '_blank');
+                    };
                 }
-                
-                // 编辑图标
-                const editIcon = createEditIcon(account.id);
-                systemNameDiv.appendChild(editIcon);
-                
-                // 删除图标
-                const deleteIcon = createDeleteIcon(account.id, account.system);
-                systemNameDiv.appendChild(deleteIcon);
-
-                // 复制全部图标
-                const copyAllIcon = createCopyAllIcon(account);
-                systemNameDiv.appendChild(copyAllIcon);
-
-                // 账号行
-                const accountItemUser = document.createElement('div');
-                accountItemUser.className = 'account-item';
-                accountItemUser.innerHTML = `
-                    <div class="item-label">账号:</div>
-                    <div class="item-value" title="点击复制账号">${account.username}<span class="copy-hint">点击复制</span></div>
-                `;
-                
-                // 密码行
-                const accountItemPwd = document.createElement('div');
-                accountItemPwd.className = 'account-item';
-                accountItemPwd.innerHTML = `
-                    <div class="item-label">密码:</div>
-                    <div class="item-value" title="点击复制密码">${account.password}<span class="copy-hint">点击复制</span></div>
-                `;
-
-                // 绑定复制事件
-                const userValueEl = accountItemUser.querySelector('.item-value');
-                const pwdValueEl = accountItemPwd.querySelector('.item-value');
-
-                userValueEl.addEventListener('click', () => copyToClipboard(account.username, userValueEl));
-                pwdValueEl.addEventListener('click', () => copyToClipboard(account.password, pwdValueEl));
-
-                // 组合并添加
-                card.appendChild(systemNameDiv);
-                card.appendChild(accountItemUser);
-                card.appendChild(accountItemPwd);
-
-                // 拖拽事件
-                card.addEventListener('dragstart', onDragStart);
-                card.addEventListener('dragover', onDragOver);
-                card.addEventListener('drop', onDrop);
-                card.addEventListener('dragend', onDragEnd);
 
                 grid.appendChild(card);
             });
-
-            // 网格拖拽事件
-            const gridEl = document.getElementById('accountsGrid');
-            gridEl.addEventListener('dragover', onDragOver);
-            gridEl.addEventListener('drop', onDrop);
         }
 
-        // 创建链接图标
-        function createLinkIcon(url) {
-            const wrapper = document.createElement('div');
-            wrapper.className = 'link-icon';
-            wrapper.innerHTML = `
-                <svg viewBox="2 3 18 18">
-                    <path d="M3.9 12a5 5 0 0 1 5-5h4v2h-4a3 3 0 1 0 0 6h4v2h-4a5 5 0 0 1-5-5zm6-1h4v2h-4zm5-4h-4v2h4a3 3 0 1 1 0 6h-4v2h4a5 5 0 1 0 0-10z"/>
-                </svg>
-            `;
-
-            wrapper.addEventListener('mouseenter', (e) => {
-                if (!url) return;
-                globalUrlTooltip.textContent = url;
-                globalUrlTooltip.classList.add('show');
-                updateTooltipPosition(e);
-            });
-
-            wrapper.addEventListener('mousemove', updateTooltipPosition);
-            wrapper.addEventListener('mouseleave', () => {
-                globalUrlTooltip.classList.remove('show');
-            });
-
-            wrapper.addEventListener('click', e => {
-                e.stopPropagation();
-                if (url) {
-                    copyToClipboard(url, wrapper);
-                    showToast('地址已复制 📋');
-                }
-            });
-
-            return wrapper;
-        }
-
-        // 创建编辑图标
-        function createEditIcon(accountId) {
-            const wrapper = document.createElement('div');
-            wrapper.className = 'edit-icon';
-            wrapper.title = '编辑账号';
-            wrapper.innerHTML = `
-                <svg viewBox="0 0 24 24">
-                    <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
-                </svg>
-            `;
-
-            wrapper.addEventListener('click', e => {
-                e.stopPropagation();
-                openModal(accountId);
-            });
-
-            return wrapper;
-        }
-
-        // 创建删除图标
-        function createDeleteIcon(accountId, systemName) {
-            const wrapper = document.createElement('div');
-            wrapper.className = 'delete-icon';
-            wrapper.title = '删除账号';
-            wrapper.innerHTML = `
-                <svg viewBox="0 0 24 24">
-                    <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
-                </svg>
-            `;
-
-            wrapper.addEventListener('click', e => {
-                e.stopPropagation();
-                openDeleteModal(accountId, systemName);
-            });
-
-            return wrapper;
-        }
-
-        // 创建复制全部图标
-        function createCopyAllIcon(account) {
-            const wrapper = document.createElement('div');
-            wrapper.className = 'copy-all-icon';
-            wrapper.title = '复制 系统名称/URL/账号/密码';
-            wrapper.innerHTML = `
-                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                    <path d="M16 1H4c-1.1 0-2 .9-2 2v12h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
-                </svg>
-            `;
-
-            wrapper.addEventListener('click', e => {
-                e.stopPropagation();
-                let textToCopy = `${account.system}\n`;
-                if (account.url) {
-                    textToCopy += `URL:${account.url}\n`;
-                }
-                textToCopy += `账号:${account.username}\n`;
-                textToCopy += `密码:${account.password}`;
-                copyToClipboard(textToCopy, wrapper);
-            });
-
-            return wrapper;
-        }
-
-        // 打开新增/编辑模态框
-        function openModal(accountId = null) {
-            const modalTitle = document.getElementById('modalTitle');
-            const form = document.getElementById('accountForm');
-            const accountIdInput = document.getElementById('accountId');
-            const systemInput = document.getElementById('system');
-            const usernameInput = document.getElementById('username');
-            const passwordInput = document.getElementById('password');
-            const urlInput = document.getElementById('url');
+        function bindEvents() {
+            document.getElementById('addBtn').onclick = () => openModal();
+            document.getElementById('accountForm').onsubmit = handleSave;
+            document.getElementById('confirmDeleteBtn').onclick = confirmDelete;
             
-            if (accountId) {
-                // 编辑模式
-                modalTitle.textContent = '编辑账号';
-                const account = accounts.find(acc => acc.id === accountId);
-                if (account) {
-                    accountIdInput.value = account.id;
-                    systemInput.value = account.system;
-                    usernameInput.value = account.username;
-                    passwordInput.value = account.password;
-                    urlInput.value = account.url || '';
-                }
-            } else {
-                // 新增模式
-                modalTitle.textContent = '新增账号';
-                form.reset();
-                accountIdInput.value = '';
-            }
-            
-            document.getElementById('modalOverlay').classList.add('show');
-            systemInput.focus();
+            const searchInput = document.getElementById('searchInput');
+            searchInput.oninput = (e) => {
+                const val = e.target.value.toLowerCase();
+                document.getElementById('clearButton').style.display = val ? 'flex' : 'none';
+                document.querySelectorAll('.account-card').forEach(card => {
+                    const content = card.innerText.toLowerCase();
+                    const isHit = content.includes(val);
+                    card.classList.toggle('hit', !!val && isHit);
+                    card.classList.toggle('dim', !!val && !isHit);
+                });
+            };
+
+            document.getElementById('clearButton').onclick = () => {
+                searchInput.value = '';
+                searchInput.oninput({ target: searchInput });
+            };
+
+            document.getElementById('saveOrderBtn').onclick = saveNewOrder;
         }
 
-        // 关闭模态框
-        function closeModal() {
-            document.getElementById('modalOverlay').classList.remove('show');
-            document.getElementById('accountForm').reset();
-        }
-
-        // 处理保存账号
-        async function handleSaveAccount(e) {
+        async function handleSave(e) {
             e.preventDefault();
-            
-            const accountId = document.getElementById('accountId').value;
-            const system = document.getElementById('system').value.trim();
-            const username = document.getElementById('username').value.trim();
-            const password = document.getElementById('password').value.trim();
-            const url = document.getElementById('url').value.trim();
-            
-            if (!system || !username || !password) {
-                showToast('请填写完整信息', 'error');
-                return;
-            }
-            
+            const id = document.getElementById('accountId').value;
+            const payload = {
+                system: document.getElementById('system').value,
+                username: document.getElementById('username').value,
+                password: document.getElementById('password').value,
+                url: document.getElementById('url').value,
+                sort_order: accounts.length
+            };
+
             try {
-                if (accountId) {
-                    // 更新现有账号
-                    const { error } = await supabase
-                        .from('accounts')
-                        .update({ system, username, password, url })
-                        .eq('id', accountId);
-                    
-                    if (error) throw error;
-                    
-                    showToast('更新成功 ✅');
+                let res;
+                if (id) {
+                    res = await supabaseClient.from('accounts').update(payload).eq('id', id);
                 } else {
-                    // 新增账号
-                    const maxSortOrder = accounts.length > 0 
-                        ? Math.max(...accounts.map(acc => acc.sort_order)) 
-                        : 0;
-                    
-                    const { data, error } = await supabase
-                        .from('accounts')
-                        .insert([{
-                            system,
-                            username,
-                            password,
-                            url,
-                            sort_order: maxSortOrder + 1
-                        }])
-                        .select();
-                    
-                    if (error) throw error;
-                    
-                    showToast('新增成功 ✅');
+                    res = await supabaseClient.from('accounts').insert([payload]);
                 }
-                
+                if (res.error) throw res.error;
+                showToast('保存成功');
                 closeModal();
-                await loadAccounts();
-            } catch (error) {
-                console.error('保存失败:', error);
-                showToast('保存失败 ❌', 'error');
+                loadAccounts();
+            } catch (err) {
+                showToast('保存失败', 'error');
             }
         }
 
-        // 打开删除确认模态框
-        function openDeleteModal(accountId, systemName) {
-            deleteAccountId = accountId;
-            document.getElementById('deleteSystemName').textContent = systemName;
+        async function saveNewOrder() {
+            const cards = [...document.querySelectorAll('.account-card')];
+            try {
+                for (let i = 0; i < cards.length; i++) {
+                    await supabaseClient.from('accounts').update({ sort_order: i }).eq('id', cards[i].dataset.id);
+                }
+                showToast('排序已保存');
+                document.getElementById('saveOrderBtn').classList.remove('show');
+            } catch (err) {
+                showToast('保存排序失败', 'error');
+            }
+        }
+
+        function openModal(id = null) {
+            const modal = document.getElementById('modalOverlay');
+            const form = document.getElementById('accountForm');
+            form.reset();
+            document.getElementById('accountId').value = id || '';
+            document.getElementById('modalTitle').innerText = id ? '编辑账号' : '新增账号';
+            
+            if (id) {
+                const acc = accounts.find(a => a.id === id);
+                document.getElementById('system').value = acc.system;
+                document.getElementById('username').value = acc.username;
+                document.getElementById('password').value = acc.password;
+                document.getElementById('url').value = acc.url || '';
+            }
+            modal.classList.add('show');
+        }
+
+        function closeModal() { document.getElementById('modalOverlay').classList.remove('show'); }
+
+        function openDeleteModal(id, name) {
+            deleteAccountId = id;
+            document.getElementById('deleteSystemName').innerText = name;
             document.getElementById('deleteModalOverlay').classList.add('show');
         }
 
-        // 关闭删除确认模态框
-        function closeDeleteModal() {
-            deleteAccountId = null;
-            document.getElementById('deleteModalOverlay').classList.remove('show');
-        }
+        function closeDeleteModal() { document.getElementById('deleteModalOverlay').classList.remove('show'); }
 
-        // 处理删除账号
-        async function handleDeleteAccount() {
-            if (!deleteAccountId) return;
-            
+        async function confirmDelete() {
             try {
-                const { error } = await supabase
-                    .from('accounts')
-                    .delete()
-                    .eq('id', deleteAccountId);
-                
-                if (error) throw error;
-                
-                showToast('删除成功 ✅');
+                await supabaseClient.from('accounts').delete().eq('id', deleteAccountId);
+                showToast('已删除');
                 closeDeleteModal();
-                await loadAccounts();
-            } catch (error) {
-                console.error('删除失败:', error);
-                showToast('删除失败 ❌', 'error');
-            }
+                loadAccounts();
+            } catch (err) { showToast('删除失败', 'error'); }
         }
 
-        // 拖拽相关函数
-        function onDragStart(e) {
-            draggedCard = this;
-            e.dataTransfer.setData('text/plain', '');
-            this.style.opacity = '0.4';
-        }
-
-        function onDragOver(e) {
-            e.preventDefault();
-        }
-
-        function onDrop(e) {
-            e.preventDefault();
-            const target = e.target.closest('.account-card');
-            if (target && target !== draggedCard) {
-                const grid = document.getElementById('accountsGrid');
-                const children = Array.from(grid.children);
-                const draggedIndex = children.indexOf(draggedCard);
-                const targetIndex = children.indexOf(target);
-                
-                if (draggedIndex < targetIndex) {
-                    grid.insertBefore(draggedCard, target.nextSibling);
-                } else {
-                    grid.insertBefore(draggedCard, target);
-                }
-                
-                isOrderChanged = true;
-                document.getElementById('saveOrderBtn').classList.add('show');
-            }
-        }
-
-        function onDragEnd() {
-            this.style.opacity = '1';
-        }
-
-        // 保存排序顺序
-        async function saveSortOrder() {
-            try {
-                const cards = document.querySelectorAll('.account-card');
-                const updates = [];
-                
-                cards.forEach((card, index) => {
-                    const accountId = card.dataset.id;
-                    updates.push({
-                        id: accountId,
-                        sort_order: index
-                    });
-                });
-                
-                // 批量更新排序
-                for (const update of updates) {
-                    const { error } = await supabase
-                        .from('accounts')
-                        .update({ sort_order: update.sort_order })
-                        .eq('id', update.id);
-                    
-                    if (error) throw error;
-                }
-                
-                isOrderChanged = false;
-                document.getElementById('saveOrderBtn').classList.remove('show');
-                showToast('排序已保存 ✅');
-                await loadAccounts(); // 重新加载以更新数据
-            } catch (error) {
-                console.error('保存排序失败:', error);
-                showToast('保存排序失败 ❌', 'error');
-            }
-        }
-
-        // 更新工具提示位置
-        function updateTooltipPosition(e) {
-            if (!globalUrlTooltip.classList.contains('show')) return;
-            
-            const offset = 10;
-            let x = e.clientX + offset;
-            let y = e.clientY + offset;
-            
-            const tooltipWidth = globalUrlTooltip.offsetWidth;
-            if (x + tooltipWidth > window.innerWidth - 10) {
-                x = window.innerWidth - tooltipWidth - 10;
-            }
-            
-            const tooltipHeight = globalUrlTooltip.offsetHeight;
-            if (y + tooltipHeight > window.innerHeight - 10) {
-                y = e.clientY - tooltipHeight - offset;
-            }
-            
-            globalUrlTooltip.style.left = x + 'px';
-            globalUrlTooltip.style.top = y + 'px';
-        }
-
-        // 更新清空按钮显示状态
-        function updateClearButton() {
-            const searchInput = document.getElementById('searchInput');
-            const clearButton = document.getElementById('clearButton');
-            const hasValue = searchInput.value.trim().length > 0;
-            
-            clearButton.style.opacity = hasValue ? '0.7' : '0';
-            clearButton.style.visibility = hasValue ? 'visible' : 'hidden';
-        }
-
-        // 执行搜索
-        function performSearch() {
-            const searchQuery = document.getElementById('searchInput').value.trim();
-            const cards = document.querySelectorAll('.account-card');
-            
-            updateClearButton();
-
-            cards.forEach(card => {
-                const system = card.dataset.system;
-                const username = card.dataset.username;
-                const password = card.dataset.password;
-                
-                const hit = !searchQuery ||
-                    system.includes(searchQuery) ||
-                    username.includes(searchQuery) ||
-                    password.includes(searchQuery);
-
-                card.classList.remove('hit', 'dim');
-
-                if (searchQuery) {
-                    card.classList.add(hit ? 'hit' : 'dim');
-                }
-
-                // 高亮显示搜索关键词
-                if (searchQuery && hit) {
-                    const systemNameElement = card.querySelector('.system-name');
-                    const valueEls = card.querySelectorAll('.item-value');
-                    
-                    // 系统名高亮
-                    const regex = new RegExp(`(${escapeRegExp(searchQuery)})`, 'gi');
-                    systemNameElement.innerHTML = system.replace(regex, '<span class="highlight">$1</span>');
-                    
-                    // 账号高亮
-                    valueEls[0].innerHTML = username.replace(regex, '<span class="highlight">$1</span>') + '<span class="copy-hint">点击复制</span>';
-                    
-                    // 密码高亮
-                    valueEls[1].innerHTML = password.replace(regex, '<span class="highlight">$1</span>') + '<span class="copy-hint">点击复制</span>';
+        function copyText(text, el) {
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('复制成功！');
+                if (el) {
+                    el.style.background = '#c8e6c9';
+                    setTimeout(() => el.style.background = '', 300);
                 }
             });
         }
 
-        // 清空搜索
-        function clearSearch() {
-            document.getElementById('searchInput').value = '';
-            performSearch();
+        function showToast(msg, type = 'success') {
+            const t = document.getElementById('toast');
+            t.innerText = msg;
+            t.style.background = type === 'error' ? '#f44336' : '#4caf50';
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2000);
         }
 
-        // 转义正则表达式特殊字符
-        function escapeRegExp(string) {
-            return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        }
-
-        // 复制到剪贴板
-        async function copyToClipboard(text, element) {
-            try {
-                await navigator.clipboard.writeText(text);
-            } catch {
-                const ta = document.createElement('textarea');
-                ta.value = text;
-                document.body.appendChild(ta);
-                ta.select();
-                document.execCommand('copy');
-                document.body.removeChild(ta);
-            }
-            showToast();
-            if (element) {
-                element.classList.add('pulse');
-                setTimeout(() => element.classList.remove('pulse'), 300);
-            }
-        }
-
-        // 显示提示消息
-        function showToast(customText, type = 'success') {
-            const toast = document.getElementById('toast');
-            toast.textContent = customText || messages[Math.floor(Math.random() * messages.length)];
-            
-            // 设置不同类型的背景色
-            if (type === 'error') {
-                toast.style.background = '#f44336';
-            } else if (type === 'info') {
-                toast.style.background = '#2196f3';
-            } else {
-                toast.style.background = '#4caf50';
-            }
-            
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 2000);
-        }
-
-        // 更新时间
         function updateTime() {
             const now = new Date();
-            const timeStr = now.toLocaleTimeString('zh-CN', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
-            document.getElementById('timeDisplay').textContent = timeStr;
-            const weekdays = ['星期日','星期一','星期二','星期三','星期四','星期五','星期六'];
-            const solarStr = `${now.getFullYear()}年${String(now.getMonth()+1).padStart(2,'0')}月${String(now.getDate()).padStart(2,'0')}日 ${weekdays[now.getDay()]}`;
-            document.getElementById('solarDate').textContent = solarStr;
-        }
-
-        // 键盘快捷键处理
-        function handleKeyboardShortcuts(e) {
-            const activeElement = document.activeElement;
-            const isInputFocused = activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA';
-            
-            if (!isInputFocused) {
-                // Ctrl+F 聚焦搜索框
-                if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
-                    e.preventDefault();
-                    document.getElementById('searchInput').focus();
-                    document.getElementById('searchInput').select();
-                }
-                
-                // Esc 清空搜索
-                if (e.key === 'Escape') {
-                    clearSearch();
-                }
-            }
-            
-            // 回车搜索（如果搜索框有焦点）
-            if (e.key === 'Enter' && activeElement.id === 'searchInput') {
-                performSearch();
-            }
-            
-            // Esc 清空搜索（即使输入框有焦点）
-            if (e.key === 'Escape' && activeElement.id === 'searchInput') {
-                clearSearch();
-            }
-            
-            // Esc 关闭模态框
-            if (e.key === 'Escape') {
-                const modalOverlay = document.getElementById('modalOverlay');
-                const deleteModalOverlay = document.getElementById('deleteModalOverlay');
-                
-                if (modalOverlay.classList.contains('show')) {
-                    closeModal();
-                } else if (deleteModalOverlay.classList.contains('show')) {
-                    closeDeleteModal();
-                }
-            }
+            document.getElementById('timeDisplay').innerText = now.toTimeString().split(' ')[0];
+            const weeks = ['星期日','星期一','星期二','星期三','星期四','星期五','星期六'];
+            document.getElementById('solarDate').innerText = `${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日 ${weeks[now.getDay()]}`;
         }
     </script>
 </body>
