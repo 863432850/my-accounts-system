@@ -3,256 +3,148 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>账号密码管理器 Pro</title>
+    <title>账号密码管理器</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔐</text></svg>">
     <style>
-        :root {
-            --primary: #4caf50;
-            --primary-dark: #2e7d32;
-            --bg-gradient: linear-gradient(135deg, #a8e6cf 0%, #dcedc8 50%, #f0f4c3 100%);
-            --card-bg: rgba(255, 255, 255, 0.9);
-            --danger: #ff5252;
-        }
-
+        /* 保留你原来的所有基础样式 */
         * { margin: 0; padding: 0; box-sizing: border-box; }
-
         body {
-            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
-            background: var(--bg-gradient);
-            min-height: 100vh;
-            padding: 40px 20px;
-            color: #333;
+            font-family: 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #a8e6cf 0%, #dcedc8 50%, #f0f4c3 100%);
+            min-height: 100vh; padding: 20px; color: #333;
         }
+        .container { max-width: 1400px; margin: 0 auto; }
+        
+        /* 头部与搜索 */
+        .header { display: grid; grid-template-columns: auto auto 1fr; align-items: center; margin-bottom: 30px; color: #2e7d32; }
+        .header h1 { font-size: 2.5rem; text-shadow: 1px 1px 2px rgba(0,0,0,0.1); margin-right: 20px; }
+        .time-search-container { display: flex; align-items: center; gap: 15px; margin-left: 40px; }
+        
+        .clock-container { background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(10px); border-radius: 20px; padding: 10px 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid rgba(255,255,255,0.8); }
+        .time-display { font-size: 1.8rem; font-weight: bold; color: #2e7d32; font-family: 'Courier New', monospace; }
+        .date-display { display: flex; justify-content: center; align-items: center; gap: 20px; font-size: 1rem; color: #388e3c; }
 
-        .container { max-width: 1200px; margin: 0 auto; }
-
-        /* Header & Search */
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 40px;
-        }
-
-        .header h1 { color: var(--primary-dark); font-size: 2rem; }
-
-        .search-container {
-            position: relative;
-            width: 300px; /* 固定宽度 */
-        }
-
+        /* 搜索框固定长度 */
+        .search-container { position: relative; display: flex; align-items: center; }
         .search-input {
-            width: 100%;
-            padding: 12px 40px;
-            border: 2px solid rgba(76, 175, 80, 0.3);
-            border-radius: 12px;
-            background: rgba(255,255,255,0.8);
-            backdrop-filter: blur(5px);
-            outline: none;
-            transition: border-color 0.3s;
+            padding: 6px 35px; border: 2px solid #c8e6c9; border-radius: 10px;
+            font-size: 0.9rem; width: 220px; height: 37px; /* 固定宽度 */
+            transition: border-color 0.2s; background: rgba(255,255,255,0.95);
         }
+        .search-input:focus { outline: none; border-color: #4caf50; }
+        .clear-button { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: #ff6b6b; border: none; color: white; cursor: pointer; font-size: 12px; width: 18px; height: 18px; display: none; align-items: center; justify-content: center; border-radius: 50%; }
 
-        .search-input:focus { border-color: var(--primary); background: #fff; }
+        /* 1. 搜索高亮样式 */
+        .highlight { background-color: #ffeb3b; color: #000; padding: 0 2px; border-radius: 2px; font-weight: bold; }
 
-        .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); fill: var(--primary); }
-        .clear-btn { 
-            position: absolute; right: 12px; top: 50%; transform: translateY(-50%); 
-            background: none; border: none; cursor: pointer; color: #999; font-size: 18px;
-            display: none;
-        }
+        /* 卡片布局 */
+        .accounts-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 15px; margin-top: 20px; }
+        .account-card { background: rgba(255, 255, 255, 0.95); border-radius: 15px; padding: 12px; box-shadow: 0 8px 25px rgba(0,0,0,0.1); border: 1px solid rgba(255,255,255,0.5); position: relative; transition: 0.3s; }
+        .account-card.dim { opacity: 0.25; filter: grayscale(60%); pointer-events: none; }
 
-        /* Highlight */
-        .hl { background-color: #ffeb3b; padding: 0 2px; border-radius: 2px; }
-
-        /* Grid & Cards */
-        .accounts-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
-        }
-
-        .account-card {
-            background: var(--card-bg);
-            border-radius: 20px;
-            padding: 20px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
-            transition: all 0.3s ease;
-            position: relative;
-            border: 1px solid rgba(255,255,255,0.3);
-        }
-        .account-card:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.1); }
+        /* 2. 修复图标重叠：重新定义位置 */
+        .system-name { font-size: 1.2rem; font-weight: bold; color: #2e7d32; margin-bottom: 10px; padding: 0 110px 8px 10px; border-bottom: 2px solid #c8e6c9; position: relative; }
         
-        .account-card.dim { opacity: 0.3; filter: grayscale(1); pointer-events: none; }
+        .card-icon { position: absolute; top: 50%; transform: translateY(-50%); cursor: pointer; opacity: 0.6; transition: 0.2s; }
+        .card-icon:hover { opacity: 1; transform: translateY(-50%) scale(1.2); }
+        
+        .copy-all-icon { right: 8px; }
+        .delete-icon   { right: 34px; }
+        .edit-icon     { right: 60px; }
+        .link-icon     { right: 86px; } /* 链接图标放在最左侧，互不重合 */
 
-        /* 图标组排列修复 */
-        .card-actions {
-            position: absolute;
-            top: 20px;
-            right: 15px;
-            display: flex;
-            gap: 12px;
-        }
+        .account-item { display: flex; align-items: center; margin-top: 8px; gap: 10px; padding: 0 10px; }
+        .item-label { font-size: 0.9rem; color: #4caf50; font-weight: 500; width: 40px; }
+        .item-value { background: #f1f8e9; border: 2px solid #c8e6c9; border-radius: 8px; padding: 6px 10px; cursor: pointer; flex: 1; font-family: 'Courier New', monospace; font-size: 0.9rem; position: relative; overflow: hidden; }
 
-        .icon-btn {
-            cursor: pointer;
-            opacity: 0.5;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-        }
-        .icon-btn:hover { opacity: 1; transform: scale(1.15); }
-        .icon-btn.link-icon svg { fill: #2196f3; }
-        .icon-btn.edit-icon svg { fill: var(--primary); }
-        .icon-btn.delete-icon svg { fill: var(--danger); }
-
-        /* Tooltip 美化 */
+        /* 3. 美化悬浮 Tips */
         .url-tooltip {
-            position: fixed;
-            background: rgba(45, 55, 72, 0.95);
-            color: white;
-            padding: 8px 14px;
-            border-radius: 8px;
-            font-size: 12px;
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 0.2s;
-            z-index: 1000;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-            backdrop-filter: blur(4px);
+            position: fixed; background: rgba(45, 55, 72, 0.9); color: #fff; padding: 8px 12px;
+            border-radius: 8px; font-size: 12px; opacity: 0; pointer-events: none;
+            transition: opacity 0.2s; z-index: 9999; box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            backdrop-filter: blur(4px); border: 1px solid rgba(255,255,255,0.1);
         }
 
-        /* 列表项 */
-        .system-title {
-            font-size: 1.25rem;
-            font-weight: bold;
-            margin-bottom: 15px;
-            color: var(--primary-dark);
-            padding-right: 80px;
-            word-break: break-all;
-        }
+        /* 4. 模态框美化：保持原风格但更精致 */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 10000; backdrop-filter: blur(2px); }
+        .modal-overlay.show { display: flex; }
+        .modal { background: white; padding: 30px; border-radius: 20px; width: 90%; max-width: 450px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); border: 1px solid #c8e6c9; }
+        .modal h2, .modal h3 { color: #2e7d32; margin-bottom: 20px; text-align: center; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; color: #4caf50; font-weight: bold; font-size: 0.9rem; }
+        .form-group input { width: 100%; padding: 12px; border: 2px solid #e8f5e9; border-radius: 10px; outline: none; transition: 0.3s; }
+        .form-group input:focus { border-color: #4caf50; background: #f1f8e9; }
 
-        .info-row {
-            display: flex;
-            align-items: center;
-            margin-bottom: 10px;
-            background: rgba(255,255,255,0.5);
-            padding: 8px 12px;
-            border-radius: 10px;
-            cursor: pointer;
-        }
-        .info-row:hover { background: #fff; }
-        .info-label { width: 50px; font-size: 12px; color: #666; font-weight: bold; }
-        .info-value { flex: 1; font-family: 'Courier New', monospace; font-size: 14px; word-break: break-all; }
+        .btn-group { display: flex; gap: 10px; justify-content: flex-end; margin-top: 25px; }
+        .modal-btn { padding: 10px 20px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .btn-save { background: #4caf50; color: white; }
+        .btn-cancel { background: #eee; color: #666; }
+        .btn-delete { background: #ff5252; color: white; }
+        .modal-btn:hover { filter: brightness(0.9); }
 
-        /* 模态框统一美化 */
-        .modal-overlay {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(4px);
-            display: none; justify-content: center; align-items: center; z-index: 2000;
-        }
-        .modal-overlay.show { display: flex; animation: fadeIn 0.3s; }
-
-        .modal {
-            background: #fff; width: 90%; max-width: 460px; border-radius: 24px; padding: 35px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.2); transform: translateY(20px); transition: 0.3s;
-        }
-        .modal-overlay.show .modal { transform: translateY(0); }
-
-        .modal-h2 { margin-bottom: 25px; color: var(--primary-dark); text-align: center; }
+        .add-btn { position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; border-radius: 50%; background: #4caf50; color: white; border: none; font-size: 35px; cursor: pointer; box-shadow: 0 4px 15px rgba(76,175,80,0.3); transition: 0.3s; }
+        .add-btn:hover { transform: scale(1.1); }
         
-        .form-group { margin-bottom: 18px; }
-        .form-group label { display: block; margin-bottom: 8px; font-size: 14px; font-weight: bold; color: #555; }
-        .form-group input {
-            width: 100%; padding: 12px 16px; border: 2px solid #eee; border-radius: 12px;
-            outline: none; transition: all 0.3s;
-        }
-        .form-group input:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(76, 175, 80, 0.1); }
-
-        /* 按钮设计 */
-        .btn-group { display: flex; gap: 12px; margin-top: 30px; }
-        .btn {
-            flex: 1; padding: 12px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.2s;
-        }
-        .btn-cancel { background: #f5f5f5; color: #666; }
-        .btn-confirm { background: var(--primary); color: white; }
-        .btn-danger { background: var(--danger); color: white; }
-        .btn:hover { filter: brightness(0.9); transform: translateY(-1px); }
-
-        /* Add Button */
-        .add-btn {
-            position: fixed; bottom: 40px; right: 40px; width: 64px; height: 64px;
-            background: var(--primary); color: white; border-radius: 50%; border: none;
-            font-size: 32px; cursor: pointer; box-shadow: 0 8px 20px rgba(76, 175, 80, 0.4);
-            display: flex; align-items: center; justify-content: center; transition: 0.3s;
-        }
-        .add-btn:hover { transform: scale(1.1) rotate(90deg); }
-
-        /* Toast */
-        .toast {
-            position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%) translateY(100px);
-            background: #333; color: white; padding: 12px 24px; border-radius: 50px;
-            transition: 0.3s; z-index: 9999;
-        }
-        .toast.show { transform: translateX(-50%) translateY(0); }
-
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-        svg { width: 20px; height: 20px; }
+        .toast { position: fixed; top: 20px; right: 20px; background: #4caf50; color: white; padding: 12px 25px; border-radius: 8px; transform: translateX(200%); transition: 0.3s; z-index: 100001; }
+        .toast.show { transform: translateX(0); }
+        svg { width: 18px; height: 18px; fill: currentColor; }
     </style>
 </head>
 <body>
-
     <div class="container">
         <div class="header">
-            <h1>🔐 账号管理器</h1>
-            <div class="search-container">
-                <span class="search-icon">
-                    <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
-                </span>
-                <input type="text" class="search-input" id="searchInput" placeholder="搜索 (Ctrl+F)">
-                <button class="clear-btn" id="clearBtn">✕</button>
+            <h1>🔐 账号密码管理器</h1>
+            <div class="time-search-container">
+                <div class="clock-container">
+                    <div class="date-display">
+                        <div class="time-display" id="timeDisplay">00:00:00</div>
+                        <div id="solarDate">加载中...</div>
+                    </div>
+                </div>
+                <div class="search-container">
+                    <input type="text" class="search-input" id="searchInput" placeholder="搜索 (Ctrl+F)...">
+                    <button class="clear-button" id="clearButton">✕</button>
+                </div>
             </div>
         </div>
-
         <div class="accounts-grid" id="accountsGrid"></div>
     </div>
 
     <div class="modal-overlay" id="modalOverlay">
         <div class="modal">
-            <h2 class="modal-h2" id="modalTitle">新增记录</h2>
+            <h2 id="modalTitle">新增账号</h2>
             <form id="accountForm">
                 <input type="hidden" id="accountId">
-                <div class="form-group"><label>系统/平台</label><input type="text" id="system" required placeholder="如：阿里云"></div>
-                <div class="form-group"><label>账号</label><input type="text" id="username" required></div>
-                <div class="form-group"><label>密码</label><input type="text" id="password" required></div>
-                <div class="form-group"><label>访问地址</label><input type="text" id="url" placeholder="https://..."></div>
+                <div class="form-group"><label>系统名称 *</label><input type="text" id="system" required></div>
+                <div class="form-group"><label>账号 *</label><input type="text" id="username" required></div>
+                <div class="form-group"><label>密码 *</label><input type="text" id="password" required></div>
+                <div class="form-group"><label>访问地址 (URL)</label><input type="text" id="url"></div>
                 <div class="btn-group">
-                    <button type="button" class="btn btn-cancel" onclick="closeModal()">取消</button>
-                    <button type="submit" class="btn btn-confirm">保存</button>
+                    <button type="button" class="modal-btn btn-cancel" onclick="closeModal()">取消</button>
+                    <button type="submit" class="modal-btn btn-save">保存信息</button>
                 </div>
             </form>
         </div>
     </div>
 
     <div class="modal-overlay" id="deleteModalOverlay">
-        <div class="modal" style="text-align: center;">
-            <div style="background: #fff0f0; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
-                <svg style="fill: #ff5252; width: 30px; height: 30px;" viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
-            </div>
-            <h3 style="margin-bottom: 10px;">确认删除？</h3>
-            <p style="color: #666; font-size: 14px;">此操作将永久删除 <strong id="deleteSystemName" style="color: #333;"></strong>，不可恢复。</p>
-            <div class="btn-group">
-                <button class="btn btn-cancel" onclick="closeDeleteModal()">我再想想</button>
-                <button class="btn btn-danger" id="confirmDeleteBtn">彻底删除</button>
+        <div class="modal" style="max-width: 350px;">
+            <h3 style="color: #d32f2f;">确认删除？</h3>
+            <p style="text-align: center; margin-bottom: 20px;">确定要删除 <strong id="deleteSystemName"></strong> 吗？数据删除后无法恢复。</p>
+            <div class="btn-group" style="justify-content: center;">
+                <button type="button" class="modal-btn btn-cancel" onclick="closeDeleteModal()">取消</button>
+                <button type="button" class="modal-btn btn-delete" id="confirmDeleteBtn">确认删除</button>
             </div>
         </div>
     </div>
 
     <button class="add-btn" id="addBtn">+</button>
-    <div id="urlTooltip" class="url-tooltip"></div>
-    <div id="toast" class="toast"></div>
+    <div id="globalUrlTooltip" class="url-tooltip"></div>
+    <div class="toast" id="toast"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
+        // 初始化 Supabase
         const SUPABASE_URL = 'https://lxuomiimbnterkxzquba.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx4dW9taWltYm50ZXJreHpxdWJhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5MzYyNDksImV4cCI6MjA4MjUxMjI0OX0.LZOFm_VS0y5UF0vBR8y2y90Wrq_cMmIvggnXL_JM6h0';
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -260,116 +152,138 @@
         let accounts = [];
         let deleteId = null;
 
-        // 初始化
-        window.onload = () => {
+        document.addEventListener('DOMContentLoaded', () => {
+            updateTime();
+            setInterval(updateTime, 1000);
             loadData();
-            initSearch();
-            initKeyboard();
-        };
+            bindEvents();
+        });
 
         async function loadData() {
-            const { data } = await supabaseClient.from('accounts').select('*').order('sort_order', { ascending: true });
-            accounts = data || [];
-            render();
+            const { data, error } = await supabaseClient.from('accounts').select('*').order('sort_order', { ascending: true });
+            if (!error) {
+                accounts = data || [];
+                render();
+            }
         }
 
-        function render(filter = '') {
+        function render(keyword = '') {
             const grid = document.getElementById('accountsGrid');
             grid.innerHTML = '';
-            
+
             accounts.forEach(acc => {
-                const isMatch = acc.system.toLowerCase().includes(filter) || acc.username.toLowerCase().includes(filter);
-                if (filter && !isMatch) return;
+                const lowerKey = keyword.toLowerCase();
+                const isMatch = acc.system.toLowerCase().includes(lowerKey) || acc.username.toLowerCase().includes(lowerKey);
+                
+                if (keyword && !isMatch) return;
 
                 const card = document.createElement('div');
-                card.className = `account-card ${filter && !isMatch ? 'dim' : ''}`;
-                
-                // 关键词高亮
-                const highlight = (text) => {
-                    if (!filter) return text;
-                    const re = new RegExp(`(${filter})`, 'gi');
-                    return text.replace(re, '<span class="hl">$1</span>');
+                card.className = 'account-card';
+
+                // 高亮处理函数
+                const highlightText = (text) => {
+                    if (!keyword) return text;
+                    const regex = new RegExp(`(${keyword})`, 'gi');
+                    return text.replace(regex, '<span class="highlight">$1</span>');
                 };
 
                 card.innerHTML = `
-                    <div class="card-actions">
-                        ${acc.url ? `
-                            <div class="icon-btn link-icon" data-url="${acc.url}" onclick="copyUrl('${acc.url}')">
-                                <svg viewBox="0 0 24 24"><path d="M3.9 12a5 5 0 0 1 5-5h4v2h-4a3 3 0 1 0 0 6h4v2h-4a5 5 0 0 1-5-5zm6-1h4v2h-4zm5-4h-4v2h4a3 3 0 1 1 0 6h-4v2h4a5 5 0 1 0 0-10z"/></svg>
-                            </div>` : ''}
-                        <div class="icon-btn edit-icon" onclick="openModal('${acc.id}')">
-                            <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
-                        </div>
-                        <div class="icon-btn delete-icon" onclick="openDelete('${acc.id}', '${acc.system}')">
-                            <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
-                        </div>
+                    <div class="system-name">
+                        <span>${highlightText(acc.system)}</span>
+                        ${acc.url ? `<div class="card-icon link-icon" data-url="${acc.url}"><svg viewBox="0 0 24 24"><path d="M3.9 12a5 5 0 0 1 5-5h4v2h-4a3 3 0 1 0 0 6h4v2h-4a5 5 0 0 1-5-5zm6-1h4v2h-4zm5-4h-4v2h4a3 3 0 1 1 0 6h-4v2h4a5 5 0 1 0 0-10z"/></svg></div>` : ''}
+                        <div class="card-icon edit-icon" onclick="openModal('${acc.id}')"><svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></div>
+                        <div class="card-icon delete-icon" onclick="openDelete('${acc.id}', '${acc.system}')"><svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg></div>
+                        <div class="card-icon copy-all-icon" title="复制全部"><svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v12h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg></div>
                     </div>
-                    <div class="system-title">${highlight(acc.system)}</div>
-                    <div class="info-row" onclick="copyText('${acc.username}', '账号')">
-                        <span class="info-label">账号</span>
-                        <span class="info-value">${highlight(acc.username)}</span>
+                    <div class="account-item">
+                        <div class="item-label">账号:</div>
+                        <div class="item-value" onclick="copyText('${acc.username}', '账号')">${highlightText(acc.username)}</div>
                     </div>
-                    <div class="info-row" onclick="copyText('${acc.password}', '密码')">
-                        <span class="info-label">密码</span>
-                        <span class="info-value">••••••••</span>
+                    <div class="account-item">
+                        <div class="item-label">密码:</div>
+                        <div class="item-value" onclick="copyText('${acc.password}', '密码')">••••••••</div>
                     </div>
                 `;
 
-                // 处理 URL Tips
-                const linkBtn = card.querySelector('.link-icon');
-                if (linkBtn) {
-                    linkBtn.onmouseenter = (e) => showTooltip(e, acc.url);
-                    linkBtn.onmouseleave = hideTooltip;
+                // 绑定链接图标的 Tips 和复制
+                const linkIcon = card.querySelector('.link-icon');
+                if (linkIcon) {
+                    linkIcon.onmouseenter = (e) => showTooltip(e, acc.url);
+                    linkIcon.onmouseleave = hideTooltip;
+                    linkIcon.onclick = () => copyText(acc.url, '链接地址');
                 }
+
+                // 复制全部按钮
+                card.querySelector('.copy-all-icon').onclick = () => {
+                    const text = `系统：${acc.system}\n账号：${acc.username}\n密码：${acc.password}\n地址：${acc.url || '无'}`;
+                    copyText(text, '全部信息');
+                };
 
                 grid.appendChild(card);
             });
         }
 
-        // 搜索功能
-        function initSearch() {
-            const input = document.getElementById('searchInput');
-            const clear = document.getElementById('clearBtn');
-
-            input.oninput = (e) => {
-                const val = e.target.value.trim().toLowerCase();
-                clear.style.display = val ? 'block' : 'none';
+        function bindEvents() {
+            // 搜索逻辑
+            const searchInput = document.getElementById('searchInput');
+            searchInput.oninput = (e) => {
+                const val = e.target.value;
+                document.getElementById('clearButton').style.display = val ? 'flex' : 'none';
                 render(val);
             };
 
-            clear.onclick = () => {
-                input.value = '';
-                input.focus();
-                clear.style.display = 'none';
+            document.getElementById('clearButton').onclick = () => {
+                searchInput.value = '';
                 render();
+                searchInput.focus();
+                document.getElementById('clearButton').style.display = 'none';
             };
-        }
 
-        // 快捷键
-        function initKeyboard() {
-            document.onkeydown = (e) => {
-                // Ctrl + F
+            // 5. 快捷键支持
+            document.addEventListener('keydown', (e) => {
+                // Ctrl+F 聚焦搜索
                 if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
                     e.preventDefault();
-                    document.getElementById('searchInput').focus();
+                    searchInput.focus();
                 }
-                // Esc
+                // Esc 清除搜索或关闭弹窗
                 if (e.key === 'Escape') {
-                    closeModal();
-                    closeDeleteModal();
-                    document.getElementById('clearBtn').click();
-                    document.getElementById('searchInput').blur();
+                    if (document.querySelector('.modal-overlay.show')) {
+                        closeModal();
+                        closeDeleteModal();
+                    } else {
+                        document.getElementById('clearButton').click();
+                    }
                 }
-            };
+            });
+
+            document.getElementById('addBtn').onclick = () => openModal();
+            document.getElementById('accountForm').onsubmit = handleSave;
+            document.getElementById('confirmDeleteBtn').onclick = confirmDelete;
         }
 
-        // 弹窗逻辑
+        async function handleSave(e) {
+            e.preventDefault();
+            const id = document.getElementById('accountId').value;
+            const payload = {
+                system: document.getElementById('system').value,
+                username: document.getElementById('username').value,
+                password: document.getElementById('password').value,
+                url: document.getElementById('url').value,
+                sort_order: accounts.length
+            };
+            const { error } = id ? await supabaseClient.from('accounts').update(payload).eq('id', id) : await supabaseClient.from('accounts').insert([payload]);
+            if (!error) {
+                showToast('保存成功');
+                closeModal();
+                loadData();
+            }
+        }
+
         function openModal(id = null) {
-            const modal = document.getElementById('modalOverlay');
             document.getElementById('accountForm').reset();
             document.getElementById('accountId').value = id || '';
-            document.getElementById('modalTitle').innerText = id ? '编辑记录' : '新增记录';
-            
+            document.getElementById('modalTitle').innerText = id ? '编辑账号' : '新增账号';
             if (id) {
                 const acc = accounts.find(a => a.id === id);
                 document.getElementById('system').value = acc.system;
@@ -377,64 +291,40 @@
                 document.getElementById('password').value = acc.password;
                 document.getElementById('url').value = acc.url || '';
             }
-            modal.classList.add('show');
+            document.getElementById('modalOverlay').classList.add('show');
         }
 
         function closeModal() { document.getElementById('modalOverlay').classList.remove('show'); }
 
-        document.getElementById('accountForm').onsubmit = async (e) => {
-            e.preventDefault();
-            const id = document.getElementById('accountId').value;
-            const data = {
-                system: document.getElementById('system').value,
-                username: document.getElementById('username').value,
-                password: document.getElementById('password').value,
-                url: document.getElementById('url').value,
-                sort_order: accounts.length
-            };
-
-            const btn = e.target.querySelector('.btn-confirm');
-            btn.innerText = '保存中...';
-            btn.disabled = true;
-
-            const { error } = id ? 
-                await supabaseClient.from('accounts').update(data).eq('id', id) : 
-                await supabaseClient.from('accounts').insert([data]);
-
-            btn.innerText = '保存';
-            btn.disabled = false;
-
-            if (!error) {
-                showToast('保存成功');
-                closeModal();
-                loadData();
-            }
-        };
-
-        // 删除逻辑
         function openDelete(id, name) {
             deleteId = id;
             document.getElementById('deleteSystemName').innerText = name;
             document.getElementById('deleteModalOverlay').classList.add('show');
         }
+
         function closeDeleteModal() { document.getElementById('deleteModalOverlay').classList.remove('show'); }
-        document.getElementById('confirmDeleteBtn').onclick = async () => {
+
+        async function confirmDelete() {
             await supabaseClient.from('accounts').delete().eq('id', deleteId);
             showToast('已删除');
             closeDeleteModal();
             loadData();
-        };
+        }
 
-        // 交互功能
+        // 交互组件
         function copyText(text, type) {
-            navigator.clipboard.writeText(text);
-            showToast(`${type}已复制`);
+            navigator.clipboard.writeText(text).then(() => showToast(`${type}已复制`));
         }
 
-        function copyUrl(url) {
-            navigator.clipboard.writeText(url);
-            showToast('链接已复制到剪贴板');
+        function showTooltip(e, text) {
+            const tip = document.getElementById('globalUrlTooltip');
+            tip.innerText = `点击复制: ${text}`;
+            tip.style.left = e.pageX + 10 + 'px';
+            tip.style.top = e.pageY + 10 + 'px';
+            tip.style.opacity = '1';
         }
+
+        function hideTooltip() { document.getElementById('globalUrlTooltip').style.opacity = '0'; }
 
         function showToast(msg) {
             const t = document.getElementById('toast');
@@ -443,19 +333,12 @@
             setTimeout(() => t.classList.remove('show'), 2000);
         }
 
-        function showTooltip(e, text) {
-            const tip = document.getElementById('urlTooltip');
-            tip.innerText = `点击复制: ${text}`;
-            tip.style.left = e.pageX + 10 + 'px';
-            tip.style.top = e.pageY + 10 + 'px';
-            tip.style.opacity = '1';
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('timeDisplay').innerText = now.toTimeString().split(' ')[0];
+            const weeks = ['星期日','星期一','星期二','星期三','星期四','星期五','星期六'];
+            document.getElementById('solarDate').innerText = `${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日 ${weeks[now.getDay()]}`;
         }
-
-        function hideTooltip() {
-            document.getElementById('urlTooltip').style.opacity = '0';
-        }
-
-        document.getElementById('addBtn').onclick = () => openModal();
     </script>
 </body>
 </html>
