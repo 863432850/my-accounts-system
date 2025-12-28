@@ -3,12 +3,94 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>账号密码管理器 V4.1 (专业云同步版)</title>
+    <title>账号密码管理器</title>
     <link rel="icon" href="images/book.png" type="image/x-icon">
+    <!-- 引入知晓云SDK -->
     <script src="./mincloud.js"></script>
     <style>
-        /* ===== 基础样式与 V3 保持高度一致 ===== */
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        /* 命中搜索的卡片 */
+        .account-card.hit {
+            box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.6),
+                        0 10px 30px rgba(76, 175, 80, 0.15);
+        }
+        /* ===== 搜索未命中：强制变暗 ===== */
+        .account-card.dim {
+            opacity: 0.25 !important;
+            filter: grayscale(60%) blur(0.2px);
+            pointer-events: none;
+            transform: none !important;
+        }
+
+        /* ===== 搜索命中：恢复正常 ===== */
+        .account-card.hit {
+            opacity: 1 !important;
+            filter: none;
+            pointer-events: auto;
+        }
+
+        /* === 系统地址链接图标 === */
+        .link-icon {
+            position: absolute;
+            right: 34px;              /* 在复制图标左侧 */
+            top: 50%;
+            transform: translateY(-50%);
+            width: 23px;
+            height: 23px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0.6;
+            transition: all 0.15s ease;
+            z-index: 10; /* 确保图标在上层 */
+        }
+
+        .link-icon:hover {
+            opacity: 1;
+            transform: translateY(-50%) scale(1.3);
+        }
+        
+        /* 减少链接图标点击时的下移距离 */
+        .link-icon:active {
+            transform: translateY(-50%) scale(0.97); /* 从 0.94 改为 0.97，移动距离更小 */
+        }
+
+        .link-icon svg {
+            width: 16px;
+            height: 16px;
+            fill: #2e7d32;
+        }
+
+        /* 悬浮地址气泡 - 修改为视口级别定位 */
+        .url-tooltip {
+            position: fixed; /* 改为 fixed，相对于视口 */
+            background: rgba(50, 50, 50, 0.95);
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+            z-index: 99999; /* 非常高的z-index确保在最顶层 */
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            max-width: 400px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .url-tooltip.show {
+            opacity: 1;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
             font-family: 'Microsoft YaHei', 'Arial', sans-serif;
             background: linear-gradient(135deg, #a8e6cf 0%, #dcedc8 50%, #f0f4c3 100%);
@@ -16,375 +98,1374 @@
             padding: 20px;
             color: #333;
         }
-        .container { max-width: 1400px; margin: 0 auto; }
 
-        /* ===== 头部布局优化：新增按钮靠左一点 ===== */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* 三列布局：左侧标题，中间时间+搜索框，右侧空白 */
         .header {
             display: grid;
-            grid-template-columns: auto auto auto 1fr; /* 新增一列 */
+            grid-template-columns: auto auto 1fr;
             align-items: center;
             margin-bottom: 30px;
             color: #2e7d32;
-            gap: 20px;
         }
-        .header h1 { font-size: 2.5rem; text-shadow: 1px 1px 2px rgba(0,0,0,0.1); }
-        
-        .btn-add {
-            background: #2e7d32;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 0.95rem;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.2s;
-            box-shadow: 0 4px 10px rgba(46, 125, 50, 0.2);
-            white-space: nowrap;
+
+        .header h1 {
+            font-size: 2.5rem;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+            margin-right: 20px;
         }
-        .btn-add:hover { background: #388e3c; transform: translateY(-2px); }
 
         .time-search-container {
             display: flex;
-            align-items: center;
-            gap: 15px;
-            margin-left: 20px;
+            align-items: left;
+            gap: 7px;
+            margin-left: 140px; /* 向右移动px */
         }
 
-        /* ===== 搜索与时间显示 ===== */
         .clock-container {
             background: rgba(255, 255, 255, 0.6);
             backdrop-filter: blur(10px);
             border-radius: 20px;
-            padding: 8px 15px;
+            padding: 10px 20px; /* 高度调短 */
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
             border: 1px solid rgba(255,255,255,0.8);
         }
-        .time-display { font-size: 1.6rem; font-weight: bold; font-family: 'Courier New', monospace; }
-        .date-display { display: flex; align-items: center; gap: 15px; font-size: 0.9rem; color: #388e3c; }
 
-        .search-container { position: relative; }
+        .time-display {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #2e7d32;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+            font-family: 'Courier New', monospace;
+        }
+
+        .date-display {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            font-size: 1rem;
+            color: #388e3c;
+            text-align: center;
+        }
+
+        /* 搜索框相关样式 - 修改 */
+        .search-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+            margin-left: 0.2cm;
+        }
+
         .search-input {
-            padding: 6px 35px;
+            padding: 6px 35px 6px 35px; /* 左侧留出搜索图标空间，右侧留出清空图标空间 */
             border: 2px solid #c8e6c9;
             border-radius: 10px;
-            width: 200px;
+            font-size: 0.9rem;
+            width: 170px;
             height: 37px;
-            background: rgba(255, 255, 255, 0.9);
-        }
-        .clear-button {
-            position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
-            background: #ff6b6b; color: white; border: none; width: 18px; height: 18px;
-            border-radius: 50%; cursor: pointer; display: none;
+            transition: all 0.2s ease;
+            font-family: 'Microsoft YaHei', 'Arial', sans-serif;
+            background-color: rgba(255, 255, 255, 0.95);
         }
 
-        /* ===== 搜索高亮样式 [改进点1] ===== */
+        .search-input:focus {
+            outline: none;
+            border-color: #4caf50;
+            box-shadow: 0 0 5px rgba(76, 175, 80, 0.3);
+            background-color: white;
+        }
+
+        /* 搜索图标 */
+        .search-icon {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 16px;
+            height: 16px;
+            pointer-events: none;
+            opacity: 0.6;
+        }
+
+        .search-icon svg {
+            width: 100%;
+            height: 100%;
+            fill: #2e7d32;
+        }
+
+        /* 清空按钮 - 修改为在输入框内部 */
+        .clear-button {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #fff; /* 将灰色改为白色 */
+            cursor: pointer;
+            font-size: 14px;
+            width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            opacity: 0;
+            visibility: hidden;
+            border-radius: 50%;
+            background-color: #ff6b6b; /* 改为好看的浅红色 */
+        }
+
+        .search-input:not(:placeholder-shown) + .clear-button {
+            opacity: 0.7;
+            visibility: visible;
+        }
+
+        .clear-button:hover {
+            opacity: 1 !important;
+            color: #fff; /* 保持白色 */
+            background-color: #ff5252; /* 悬停时加深一点红色 */
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        .clear-button:active {
+            transform: translateY(-50%) scale(0.95);
+        }
+        
         .highlight {
             background-color: #ffeb3b;
-            color: #000;
-            padding: 0 2px;
-            border-radius: 2px;
+            padding: 2px 4px;
+            border-radius: 4px;
             font-weight: bold;
         }
 
-        /* ===== 账号卡片区域 ===== */
         .accounts-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 15px;
+            gap: 15px; /* 缩小间距 */
+            margin-top: 20px;
         }
+
         .account-card {
             background: rgba(255, 255, 255, 0.95);
             border-radius: 15px;
-            padding: 12px;
+            padding: 8px; /* 上下内边距缩短 */
             box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(255,255,255,0.5);
             position: relative;
-            transition: all 0.3s;
-            cursor: grab;
+            overflow: hidden;
+            cursor: move;
         }
-        .account-card:active { cursor: grabbing; }
-        .account-card.dim { opacity: 0.2; filter: grayscale(1); pointer-events: none; }
-        .account-card.hit { box-shadow: 0 0 0 3px #4caf50; }
 
+        .account-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            transition: left 0.5s;
+        }
+
+        .account-card:hover::before {
+            left: 100%;
+        }
+
+        .account-card:hover {
+            transform: translateY(-5px) scale(1.01);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+        }
+        .account-card.dim:hover,
+        .account-card.hit:hover {
+            transform: none;
+        }
+
+        /* 修改系统名称样式：左对齐并添加左边距 */
         .system-name {
-            font-size: 1.1rem; font-weight: bold; color: #2e7d32;
-            padding-bottom: 8px; border-bottom: 2px solid #c8e6c9;
-            margin-bottom: 10px; padding-right: 60px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #2e7d32;
+            margin-bottom: 6px;
+            /* 使图标能定位到右侧 */
+            padding-right: 70px; /* 增加右边距，为更多图标留空间 */
+            padding-left: 10px; /* 添加左边距 */
+            position: relative;
+            text-align: left; /* 改为左对齐 */
+            padding-bottom: 6px;
+            border-bottom: 2px solid #c8e6c9;
+            line-height: 1.4; /* 调整行高，使文字和图标垂直对齐更美观 */
         }
 
-        .account-item { display: flex; align-items: center; margin-bottom: 8px; gap: 10px; }
-        .item-label { font-size: 0.85rem; color: #4caf50; min-width: 40px; }
+        /* 复制全部的小图标（放在系统名称右侧） */
+        .copy-all-icon {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 20px;              /* 缩小图标尺寸 */
+            height: 20px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            cursor: pointer;
+            background: transparent;  /* 去掉背景色 */
+            border: none;             /* 去掉边框 ✅ */
+            transition: transform 0.15s ease, opacity 0.2s;
+            opacity: 0.6;             /* 默认轻微透明，视觉更柔和 */
+        }
+
+        .copy-all-icon:hover {
+            transform: translateY(-50%) scale(1.3); /* hover 时轻微放大 */
+            opacity: 1;                              /* 亮度变高 */
+        }
+        
+        /* 减少复制全部图标点击时的下移距离 */
+        .copy-all-icon:active {
+            transform: translateY(-50%) scale(0.97); /* 从 0.94 改为 0.97，移动距离更小 */
+        }
+
+        .copy-all-icon svg {
+            width: 16px;    /* 图标更小 */
+            height: 16px;
+            fill: #2e7d32;  /* 保持绿色 */
+        }
+
+        .account-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            gap: 10px;
+            padding-left: 10px; /* 保持与系统名称对齐 */
+            padding-right: 10px; /* 两侧对称 */
+        }
+
+        .item-label {
+            font-size: 0.9rem;
+            color: #4caf50;
+            font-weight: 500;
+            min-width: 40px;
+            flex-shrink: 0;
+        }
+
         .item-value {
-            background: #f1f8e9; border: 2px solid #c8e6c9; border-radius: 8px;
-            padding: 5px 10px; cursor: pointer; flex: 1; font-family: monospace;
-            font-size: 0.9rem; overflow: hidden; text-overflow: ellipsis;
+            background: #f1f8e9;
+            border: 2px solid #c8e6c9;
+            border-radius: 8px;
+            padding: 6px 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            position: relative;
+            word-break: break-all;
+            flex: 1;
         }
 
-        /* ===== 图标增强 [改进点5] ===== */
-        .action-icons { position: absolute; right: 10px; top: 12px; display: flex; gap: 8px; }
-        .icon-btn { cursor: pointer; opacity: 0.6; transition: 0.2s; display: flex; align-items: center; }
-        .icon-btn:hover { opacity: 1; transform: scale(1.2); }
-        .delete-btn { color: #ff5252; }
-
-        /* ===== Tooltip 边界修正 [改进点2] ===== */
-        .url-tooltip {
-            position: fixed; background: #333; color: white; padding: 6px 12px;
-            border-radius: 6px; font-size: 12px; z-index: 10000;
-            pointer-events: none; opacity: 0; transition: opacity 0.2s;
-            max-width: 300px; word-break: break-all;
+        .item-value:hover {
+            border-color: #4caf50;
+            background: #e8f5e8;
+            transform: scale(1.02);
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.15);
         }
-        .url-tooltip.show { opacity: 1; }
-
-        /* ===== 弹窗样式 ===== */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);
-            display: none; justify-content: center; align-items: center; z-index: 20000;
+        
+        /* 减少账号密码框点击时的下移距离 */
+        .item-value:active {
+            transform: scale(0.98); /* 从 0.98 保持不变，但已经很小了 */
+            box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
         }
-        .modal-content { background: white; padding: 25px; border-radius: 15px; width: 380px; }
-        .form-group { margin-bottom: 12px; }
-        .form-group label { display: block; font-size: 0.85rem; margin-bottom: 4px; }
-        .form-group input { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 6px; }
-        .modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 15px; }
+
+        .copy-hint {
+            position: absolute;
+            top: 50%;
+            right: 10px;
+            transform: translateY(-50%);
+            font-size: 0.7rem;
+            color: #81c784;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .item-value:hover .copy-hint {
+            opacity: 1;
+        }
 
         .toast {
-            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
-            background: #4caf50; color: white; padding: 10px 20px; border-radius: 20px;
-            z-index: 30000; display: none;
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #4caf50;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transform: translateX(400px);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+            font-weight: 500;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        /* 微小 pulse 动画效果（复制时）- 调整幅度 */
+        @keyframes pulseAnim {
+            0% { transform: translateY(-50%) scale(1); } /* 保持位置 */
+            50% { transform: translateY(-50%) scale(1.02); }  /* 从 1.03 改为 1.02 */
+            100% { transform: translateY(-50%) scale(1); }
+        }
+        
+        /* 为链接图标和复制全部图标单独设置动画 */
+        .link-icon.pulse, .copy-all-icon.pulse {
+            animation: pulseAnim 300ms ease-in-out;
+        }
+
+        /* ===== 新增样式 ===== */
+        
+        /* 删除按钮样式 */
+        .delete-icon {
+            position: absolute;
+            right: 42px; /* 放在复制图标左侧 */
+            top: 50%;
+            transform: translateY(-50%);
+            width: 20px;
+            height: 20px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            cursor: pointer;
+            background: transparent;
+            border: none;
+            transition: transform 0.15s ease, opacity 0.2s;
+            opacity: 0.3; /* 默认更透明，减少误触 */
+            z-index: 11;
+        }
+
+        .delete-icon:hover {
+            transform: translateY(-50%) scale(1.3);
+            opacity: 1;
+            background-color: rgba(244, 67, 54, 0.1);
+        }
+
+        .delete-icon:active {
+            transform: translateY(-50%) scale(0.97);
+        }
+
+        .delete-icon svg {
+            width: 14px;
+            height: 14px;
+            fill: #f44336; /* 红色提醒 */
+        }
+
+        /* 新增按钮样式 */
+        .add-button {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #4caf50, #2e7d32);
+            color: white;
+            border: none;
+            font-size: 30px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+            transition: all 0.3s ease;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .add-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+        }
+
+        .add-button:active {
+            transform: scale(0.95);
+        }
+
+        /* 模态框样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            position: relative;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e8f5e9;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            color: #2e7d32;
+            font-weight: bold;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #888;
+            transition: color 0.2s;
+        }
+
+        .modal-close:hover {
+            color: #f44336;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #c8e6c9;
+            border-radius: 8px;
+            font-size: 16px;
+            font-family: 'Microsoft YaHei', 'Arial', sans-serif;
+            transition: all 0.2s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #4caf50;
+            box-shadow: 0 0 5px rgba(76, 175, 80, 0.3);
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Microsoft YaHei', 'Arial', sans-serif;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4caf50, #2e7d32);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+        }
+
+        .btn-secondary {
+            background: #f5f5f5;
+            color: #666;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        /* 加载指示器 */
+        .loader {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #4caf50;
+            font-size: 14px;
+        }
+
+        .loader.show {
+            display: block;
+        }
+
+        .loader-dots {
+            display: inline-block;
+            margin-left: 5px;
+        }
+
+        .loader-dots span {
+            animation: dots 1.5s infinite;
+            opacity: 0;
+        }
+
+        .loader-dots span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .loader-dots span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes dots {
+            0%, 20% { opacity: 0; }
+            50% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                position: relative;
+                display: flex;
+                align-items: center;
+                height: 64px;     /* 建议固定，防止抖动 */
+            }
+
+            .header h1 {
+                font-size: 2.5rem;
+                text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+            }
+
+            .time-search-container {
+                position: fixed;
+                left: 50vw;                 /* 视口正中线 */
+                top: 32px;                  /* 距顶部固定，不参与计算 */
+                transform: translateX(-50%);
+                display: flex;
+                align-items: center;
+                z-index: 100;
+            }
+
+            .accounts-grid {
+                grid-template-columns: 1fr;
+            }
+            .time-display {
+                font-size: 1.5rem;
+            }
+            .header h1 {
+                font-size: 2rem;
+            }
+            .system-name {
+                padding-right: 56px; /* 给小屏更多空间 */
+                padding-left: 12px; /* 移动端也保持左间距 */
+            }
+            
+            .account-item {
+                padding-left: 12px; /* 移动端也保持对齐 */
+                padding-right: 12px;
+            }
+            
+            .delete-icon {
+                right: 48px; /* 移动端调整位置 */
+            }
+            
+            .add-button {
+                bottom: 20px;
+                right: 20px;
+                width: 50px;
+                height: 50px;
+                font-size: 24px;
+            }
         }
     </style>
 </head>
 <body>
-
-<div class="container">
-    <div class="header">
-        <h1>🔐 账号密码管理器</h1>
-        
-        <button class="btn-add" onclick="openModal()">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
-            新增账号
-        </button>
-
-        <div class="time-search-container">
-            <div class="clock-container">
-                <div class="date-display">
-                    <div class="time-display" id="timeDisplay">00:00:00</div>
-                    <div id="solarDate">加载中...</div>
-                </div>
-            </div>
-            <div class="search-container">
-                <input type="text" class="search-input" id="searchInput" placeholder="搜索系统或账号...">
-                <button class="clear-button" id="clearButton">✕</button>
-            </div>
-        </div>
-    </div>
-
-    <div class="accounts-grid" id="accountsGrid">
-        </div>
-</div>
-
-<div class="modal-overlay" id="modalOverlay">
-    <div class="modal-content">
-        <h3 style="margin-bottom:15px; color:#2e7d32">新增/编辑账号</h3>
-        <div class="form-group"><label>系统名称</label><input type="text" id="m_system"></div>
-        <div class="form-group"><label>用户名</label><input type="text" id="m_user"></div>
-        <div class="form-group"><label>密码</label><input type="text" id="m_pass"></div>
-        <div class="form-group"><label>链接 (可选)</label><input type="text" id="m_url"></div>
-        <div class="modal-footer">
-            <button onclick="closeModal()" style="padding:6px 12px; cursor:pointer">取消</button>
-            <button onclick="saveAccount()" style="padding:6px 12px; background:#2e7d32; color:white; border:none; border-radius:4px; cursor:pointer">保存到云端</button>
-        </div>
-    </div>
-</div>
-
-<div id="globalTooltip" class="url-tooltip"></div>
-<div id="toast" class="toast"></div>
-
-<script>
-    // ===== 配置区 [改进点：解决401报错] =====
-    const CLIENT_ID = 'beb23e269f45432272c6'; // 请确保此处ID正确
-    const TABLE_ID = 'account_list'; // 你的知晓云数据表ID
-
-    try {
-        window.BaaS.init(CLIENT_ID);
-    } catch(e) { console.error("BaaS Init Failed", e); }
-
-    let allAccounts = [];
-
-    // ===== 1. 获取数据 =====
-    async function fetchAccounts() {
-        showToast("正在同步云端数据...");
-        try {
-            let table = new BaaS.TableObject(TABLE_ID);
-            let res = await table.limit(1000).orderBy('-created_at').find();
-            allAccounts = res.data.objects;
-            renderCards(allAccounts);
-        } catch (err) {
-            console.error(err);
-            if(err.status === 401) alert("身份验证失败(401)：请检查知晓云ClientID和表权限设置！");
-        }
-    }
-
-    // ===== 2. 渲染卡片 [改进点1：增加搜索高亮逻辑] =====
-    function renderCards(dataList, query = "") {
-        const grid = document.getElementById('accountsGrid');
-        grid.innerHTML = '';
-        
-        dataList.forEach(item => {
-            const card = document.createElement('div');
-            card.className = 'account-card';
-            card.draggable = true; // [改进点6：开启拖拽]
-            
-            // 处理高亮
-            const highlight = (text) => {
-                if (!query) return text;
-                const reg = new RegExp(`(${query})`, 'gi');
-                return text.toString().replace(reg, '<span class="highlight">$1</span>');
-            };
-
-            card.innerHTML = `
-                <div class="action-icons">
-                    ${item.url ? `
-                    <div class="icon-btn" onmouseenter="showUrl(event, '${item.url}')" onmouseleave="hideUrl()" onclick="window.open('${item.url}')">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="#2e7d32"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
-                    </div>` : ''}
-                    <div class="icon-btn delete-btn" onclick="deleteAccount('${item._id}')" title="删除">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+    <div class="container">
+        <div class="header">
+            <h1>🔐 账号密码管理器</h1>
+            <div class="time-search-container">
+                <div class="clock-container">
+                    <div class="date-display">
+                        <div class="time-display" id="timeDisplay">00:00:00</div>
+                        <div id="solarDate">2024年01月01日 星期一</div>
                     </div>
                 </div>
-                <div class="system-name">${highlight(item.system)}</div>
-                <div class="account-item">
-                    <span class="item-label">账号</span>
-                    <div class="item-value" onclick="copyText('${item.username}')">${highlight(item.username)}</div>
+                <div class="search-container">
+                    <!-- 搜索图标 -->
+                    <div class="search-icon">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+                        </svg>
+                    </div>
+                    
+                    <!-- 搜索输入框 -->
+                    <input type="text" class="search-input" id="searchInput" placeholder="请搜索...">
+                    
+                    <!-- 清空按钮 - 只在有内容时显示 -->
+                    <button class="clear-button" id="clearButton" title="清空搜索">✕</button>
                 </div>
-                <div class="account-item">
-                    <span class="item-label">密码</span>
-                    <div class="item-value" onclick="copyText('${item.password}')">••••••••</div>
+            </div>
+            <div></div>
+        </div>
+
+        <!-- 加载指示器 -->
+        <div class="loader" id="loader">
+            正在加载数据<span class="loader-dots"><span>.</span><span>.</span><span>.</span></span>
+        </div>
+
+        <div class="accounts-grid" id="accountsGrid">
+            <!-- 账号卡片通过JavaScript生成 -->
+        </div>
+    </div>
+
+    <!-- 新增按钮 -->
+    <button class="add-button" id="addButton" title="新增账号">+</button>
+
+    <!-- 新增/编辑账号模态框 -->
+    <div class="modal" id="accountModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalTitle">新增账号</h2>
+                <button class="modal-close" id="modalClose">&times;</button>
+            </div>
+            <form id="accountForm">
+                <input type="hidden" id="accountId">
+                
+                <div class="form-group">
+                    <label class="form-label" for="system">系统名称 *</label>
+                    <input type="text" class="form-input" id="system" required placeholder="请输入系统名称">
                 </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="username">账号 *</label>
+                    <input type="text" class="form-input" id="username" required placeholder="请输入账号">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="password">密码 *</label>
+                    <input type="text" class="form-input" id="password" required placeholder="请输入密码">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="url">地址URL</label>
+                    <input type="text" class="form-input" id="url" placeholder="请输入网址（可选）">
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" id="cancelBtn">取消</button>
+                    <button type="submit" class="btn btn-primary" id="saveBtn">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+    <!-- 全局悬浮提示框 -->
+    <div id="globalUrlTooltip" class="url-tooltip"></div>
+
+    <script>
+        // 初始化知晓云
+        wx.BaaS.init('beb23e269f45432272c6');
+        
+        // 获取数据表
+        const AccountTable = new wx.BaaS.TableObject('account_list');
+        
+        // 随机有趣提示消息
+        const messages = [
+            "复制成功!👌️", "成功复制！👏","已复制，注意保密！🛡️", "完美复制！🚀",
+        ];
+
+        // 全局悬浮提示框元素
+        const globalUrlTooltip = document.getElementById('globalUrlTooltip');
+        
+        // 存储当前账户数据
+        let accounts = [];
+        let isDragging = false;
+        let dragTimer = null;
+
+        function createLinkIcon(url) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'link-icon';
+            wrapper.innerHTML = `
+                <svg viewBox="2 3 18 18">
+                    <path d="M3.9 12a5 5 0 0 1 5-5h4v2h-4a3 3 0 1 0 0 6h4v2h-4a5 5 0 0 1-5-5zm6-1h4v2h-4zm5-4h-4v2h4a3 3 0 1 1 0 6h-4v2h4a5 5 0 1 0 0-10z"/>
+                </svg>
             `;
-            
-            // 绑定拖拽事件
-            bindDragEvents(card);
-            grid.appendChild(card);
-        });
-    }
 
-    // ===== 3. 保存数据 [改进点4：修复保存逻辑并刷新] =====
-    async function saveAccount() {
-        const data = {
-            system: document.getElementById('m_system').value,
-            username: document.getElementById('m_user').value,
-            password: document.getElementById('m_pass').value,
-            url: document.getElementById('m_url').value
-        };
-        if(!data.system || !data.username) return alert("请填写完整信息");
+            // 鼠标进入时显示悬浮提示框
+            wrapper.addEventListener('mouseenter', (e) => {
+                if (!url) return;
+                
+                // 设置提示框内容
+                globalUrlTooltip.textContent = url;
+                globalUrlTooltip.classList.add('show');
+                
+                // 更新位置
+                updateTooltipPosition(e);
+            });
 
-        try {
-            let table = new BaaS.TableObject(TABLE_ID);
-            let entry = table.create();
-            await entry.set(data).save();
-            showToast("保存成功！已同步至云端");
-            closeModal();
-            fetchAccounts(); // 刷新列表
-        } catch (err) {
-            alert("保存失败，请检查网络或权限");
+            // 鼠标移动时更新位置
+            wrapper.addEventListener('mousemove', updateTooltipPosition);
+
+            // 鼠标离开时隐藏提示框
+            wrapper.addEventListener('mouseleave', () => {
+                globalUrlTooltip.classList.remove('show');
+            });
+
+            // 点击复制地址
+            wrapper.addEventListener('click', e => {
+                e.stopPropagation();
+                if (url) {
+                    copyToClipboard(url, wrapper);
+                    showToast('地址已复制 📋');
+                }
+            });
+
+            return wrapper;
         }
-    }
 
-    // ===== 4. 删除数据 [改进点5：增加确认] =====
-    async function deleteAccount(id) {
-        if(!confirm("确定要删除这条云端记录吗？删除后不可恢复。")) return;
-        try {
-            let table = new BaaS.TableObject(TABLE_ID);
-            await table.delete(id);
-            showToast("已从云端删除");
-            fetchAccounts();
-        } catch (err) { alert("删除失败"); }
-    }
+        // 创建删除图标
+        function createDeleteIcon(accountId, systemName) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'delete-icon';
+            wrapper.setAttribute('title', '删除此账号');
+            wrapper.innerHTML = `
+                <svg viewBox="0 0 24 24">
+                    <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+                </svg>
+            `;
 
-    // ===== 5. Tooltip 边界优化 [改进点2] =====
-    function showUrl(e, url) {
-        const tip = document.getElementById('globalTooltip');
-        tip.textContent = "跳转: " + url;
-        tip.classList.add('show');
+            wrapper.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                
+                // 确认删除
+                if (confirm(`确定要删除 "${systemName}" 吗？此操作不可撤销！`)) {
+                    try {
+                        // 显示加载
+                        const toast = document.getElementById('toast');
+                        toast.textContent = '正在删除...';
+                        toast.classList.add('show');
+                        
+                        // 从知晓云删除
+                        await AccountTable.delete(accountId);
+                        
+                        // 从本地数组删除
+                        const index = accounts.findIndex(acc => acc.id === accountId);
+                        if (index !== -1) {
+                            accounts.splice(index, 1);
+                        }
+                        
+                        // 重新渲染
+                        renderAccounts();
+                        showToast('删除成功 ✅');
+                    } catch (error) {
+                        console.error('删除失败:', error);
+                        showToast('删除失败 ❌');
+                    }
+                }
+            });
+
+            return wrapper;
+        }
+
+        // 更新悬浮提示框位置
+        function updateTooltipPosition(e) {
+            if (!globalUrlTooltip.classList.contains('show')) return;
+            
+            const offset = 10; // 距离鼠标的偏移量
+            let x = e.clientX + offset;
+            let y = e.clientY + offset;
+            
+            // 确保提示框不会超出视口右侧
+            const tooltipWidth = globalUrlTooltip.offsetWidth;
+            if (x + tooltipWidth > window.innerWidth - 10) {
+                x = window.innerWidth - tooltipWidth - 10;
+            }
+            
+            // 确保提示框不会超出视口底部
+            const tooltipHeight = globalUrlTooltip.offsetHeight;
+            if (y + tooltipHeight > window.innerHeight - 10) {
+                y = e.clientY - tooltipHeight - offset;
+            }
+            
+            globalUrlTooltip.style.left = x + 'px';
+            globalUrlTooltip.style.top = y + 'px';
+        }
+
+        function updateTime() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('zh-CN', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            document.getElementById('timeDisplay').textContent = timeStr;
+            const weekdays = ['星期日','星期一','星期二','星期三','星期四','星期五','星期六'];
+            const solarStr = `${now.getFullYear()}年${String(now.getMonth()+1).padStart(2,'0')}月${String(now.getDate()).padStart(2,'0')}日 ${weekdays[now.getDay()]}`;
+            document.getElementById('solarDate').textContent = solarStr;
+        }
+
+        async function copyToClipboard(text, element) {
+            try {
+                await navigator.clipboard.writeText(text);
+            } catch {
+                const ta = document.createElement('textarea'); ta.value = text;
+                document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+            }
+            showToast();
+            if (element) {
+                element.classList.add('pulse'); 
+                setTimeout(() => element.classList.remove('pulse'), 300);
+            }
+        }
+
+        function showToast(customText) {
+            const toast = document.getElementById('toast');
+            toast.textContent = customText || messages[Math.floor(Math.random()*messages.length)];
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        // 拖拽排序逻辑
+        let draggedCard = null;
+        function onDragStart(e) {
+            draggedCard = this;
+            e.dataTransfer.setData('text/plain', '');
+            isDragging = true;
+        }
         
-        let x = e.clientX + 10;
-        let y = e.clientY + 10;
-        
-        // 自动避开屏幕边缘
-        if (x + 200 > window.innerWidth) x = window.innerWidth - 210;
-        if (y + 50 > window.innerHeight) y = window.innerHeight - 60;
-        
-        tip.style.left = x + 'px';
-        tip.style.top = y + 'px';
-    }
-    function hideUrl() { document.getElementById('globalTooltip').classList.remove('show'); }
-
-    // ===== 6. 搜索功能 =====
-    document.getElementById('searchInput').addEventListener('input', (e) => {
-        const query = e.target.value.toLowerCase();
-        document.getElementById('clearButton').style.display = query ? 'block' : 'none';
-        
-        const cards = document.querySelectorAll('.account-card');
-        cards.forEach(card => {
-            const text = card.innerText.toLowerCase();
-            const isHit = text.includes(query);
-            card.style.display = isHit ? 'block' : 'none';
-        });
-        // 重新渲染以应用高亮（可选，或直接用CSS显示隐藏）
-        if(!query) renderCards(allAccounts);
-    });
-
-    document.getElementById('clearButton').onclick = () => {
-        document.getElementById('searchInput').value = '';
-        document.getElementById('clearButton').style.display = 'none';
-        renderCards(allAccounts);
-    };
-
-    // ===== 7. 拖拽排序逻辑 [改进点6] =====
-    let draggedItem = null;
-    function bindDragEvents(el) {
-        el.addEventListener('dragstart', () => { draggedItem = el; setTimeout(() => el.style.opacity = '0.5', 0); });
-        el.addEventListener('dragend', () => { el.style.opacity = '1'; draggedItem = null; });
-        el.addEventListener('dragover', e => e.preventDefault());
-        el.addEventListener('drop', function(e) {
+        function onDragOver(e) {
             e.preventDefault();
-            if (this !== draggedItem) {
-                const allCards = [...document.querySelectorAll('.account-card')];
-                const curIdx = allCards.indexOf(this);
-                const dragIdx = allCards.indexOf(draggedItem);
-                if (curIdx > dragIdx) this.after(draggedItem);
-                else this.before(draggedItem);
-                showToast("顺序已调整（仅本地生效）");
+        }
+        
+        function onDrop(e) {
+            e.preventDefault();
+            isDragging = false;
+            const target = e.target.closest('.account-card');
+            if (target && target !== draggedCard) {
+                const grid = document.getElementById('accountsGrid');
+                const children = Array.from(grid.children);
+                const draggedIndex = children.indexOf(draggedCard);
+                const targetIndex = children.indexOf(target);
+                
+                if (draggedIndex < targetIndex) {
+                    grid.insertBefore(draggedCard, target.nextSibling);
+                } else {
+                    grid.insertBefore(draggedCard, target);
+                }
+                
+                // 更新本地顺序
+                updateLocalOrder();
+                
+                // 延迟保存到云端
+                if (dragTimer) clearTimeout(dragTimer);
+                dragTimer = setTimeout(saveOrderToCloud, 1000);
+            }
+        }
+        
+        // 更新本地顺序
+        function updateLocalOrder() {
+            const grid = document.getElementById('accountsGrid');
+            const children = Array.from(grid.children);
+            
+            children.forEach((card, index) => {
+                const accountId = card.dataset.id;
+                const account = accounts.find(acc => acc.id === accountId);
+                if (account) {
+                    account.order = index;
+                }
+            });
+            
+            // 按新顺序排序
+            accounts.sort((a, b) => a.order - b.order);
+        }
+        
+        // 保存顺序到云端
+        async function saveOrderToCloud() {
+            try {
+                // 批量更新所有账户的顺序
+                const updatePromises = accounts.map((account, index) => {
+                    const record = AccountTable.getWithoutData(account.id);
+                    record.set('order', index);
+                    return record.update();
+                });
+                
+                await Promise.all(updatePromises);
+                showToast('排序已保存 ✅');
+            } catch (error) {
+                console.error('保存排序失败:', error);
+                showToast('保存排序失败 ❌');
+            }
+        }
+
+        function createCopyAllIcon() {
+            // 返回 DOM 节点（SVG 图标）用于插入
+            const wrapper = document.createElement('div');
+            wrapper.className = 'copy-all-icon';
+            wrapper.setAttribute('role', 'button');
+            wrapper.setAttribute('title', '复制 系统名称/URL/账号/密码');
+            wrapper.innerHTML = `
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path d="M16 1H4c-1.1 0-2 .9-2 2v12h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+                </svg>
+            `;
+            return wrapper;
+        }
+
+        // 高亮匹配文本的函数
+        function highlightText(text, query) {
+            if (!query) return text;
+            
+            // 创建正则表达式，忽略大小写
+            const regex = new RegExp(`(${escapeRegExp(query)})`, 'gi');
+            return text.replace(regex, '<span class="highlight">$1</span>');
+        }
+
+        // 转义正则表达式特殊字符
+        function escapeRegExp(string) {
+            return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        }
+
+        // 更新清空按钮显示状态
+        function updateClearButton() {
+            const searchInput = document.getElementById('searchInput');
+            const clearButton = document.getElementById('clearButton');
+            const hasValue = searchInput.value.trim().length > 0;
+            
+            // 使用 style 而非 class 来确保优先级
+            clearButton.style.opacity = hasValue ? '0.7' : '0';
+            clearButton.style.visibility = hasValue ? 'visible' : 'hidden';
+        }
+
+        // 从知晓云获取账户数据
+        async function fetchAccounts() {
+            try {
+                document.getElementById('loader').classList.add('show');
+                
+                // 查询数据，按order字段升序排序
+                const query = new wx.BaaS.Query();
+                const orderBy = ['order'];
+                const result = await AccountTable.setQuery(query).orderBy(orderBy).find();
+                
+                accounts = result.data.objects.map(item => ({
+                    id: item.id,
+                    system: item.system,
+                    username: item.username,
+                    password: item.password,
+                    url: item.url || '',
+                    order: item.order || 0
+                }));
+                
+                renderAccounts();
+                document.getElementById('loader').classList.remove('show');
+            } catch (error) {
+                console.error('获取数据失败:', error);
+                document.getElementById('loader').classList.remove('show');
+                showToast('加载数据失败 ❌');
+            }
+        }
+
+        // 渲染账户卡片
+        function renderAccounts() {
+            const grid = document.getElementById('accountsGrid');
+            grid.innerHTML = '';
+            
+            accounts.forEach(account => {
+                const card = document.createElement('div');
+                card.className = 'account-card';
+                card.draggable = true;
+                card.dataset.id = account.id;
+                card.dataset.system = account.system;
+                card.dataset.username = account.username;
+                card.dataset.password = account.password;
+                card.dataset.url = account.url || '';
+
+                // system name 区域（相对定位，便于 icon 放置）
+                const systemNameDiv = document.createElement('div');
+                systemNameDiv.className = 'system-name';
+                systemNameDiv.textContent = account.system;
+                
+                // 系统地址链接图标
+                if (account.url) {
+                    const linkIcon = createLinkIcon(account.url);
+                    systemNameDiv.appendChild(linkIcon);
+                }
+                
+                // 删除按钮
+                const deleteIcon = createDeleteIcon(account.id, account.system);
+                systemNameDiv.appendChild(deleteIcon);
+
+                // 添加复制全部图标
+                const icon = createCopyAllIcon();
+                // 把需要复制的内容放到 dataset 中
+                icon.dataset.system = account.system;
+                icon.dataset.username = account.username;
+                icon.dataset.password = account.password;
+                icon.dataset.url = account.url || '';
+
+                // 点击图标，复制四项（每项换行）
+                icon.addEventListener('click', function(e) {
+                    e.stopPropagation(); // 防止触发父节点其他事件
+                    // 构建要复制的文本：系统名称、URL、账号、密码
+                    let textToCopy = `${this.dataset.system}\n`;
+                    if (this.dataset.url) {
+                        textToCopy += `URL:${this.dataset.url}\n`;
+                    }
+                    textToCopy += `账号:${this.dataset.username}\n`;
+                    textToCopy += `密码:${this.dataset.password}`;
+                    copyToClipboard(textToCopy, this);
+                });
+
+                systemNameDiv.appendChild(icon);
+
+                // 账号行
+                const accountItemUser = document.createElement('div');
+                accountItemUser.className = 'account-item';
+                accountItemUser.innerHTML = `
+                    <div class="item-label">账号:</div>
+                    <div class="item-value" title="点击复制账号">${account.username}<span class="copy-hint">点击复制</span></div>
+                `;
+                // 密码行
+                const accountItemPwd = document.createElement('div');
+                accountItemPwd.className = 'account-item';
+                accountItemPwd.innerHTML = `
+                    <div class="item-label">密码:</div>
+                    <div class="item-value" title="点击复制密码">${account.password}<span class="copy-hint">点击复制</span></div>
+                `;
+
+                // 单独绑定账号和密码的复制（使用 dataset 或闭包）
+                const userValueEl = accountItemUser.querySelector('.item-value');
+                const pwdValueEl = accountItemPwd.querySelector('.item-value');
+
+                userValueEl.addEventListener('click', () => copyToClipboard(account.username, userValueEl));
+                pwdValueEl.addEventListener('click', () => copyToClipboard(account.password, pwdValueEl));
+
+                // 组合并 append
+                card.appendChild(systemNameDiv);
+                card.appendChild(accountItemUser);
+                card.appendChild(accountItemPwd);
+
+                card.addEventListener('dragstart', onDragStart);
+                card.addEventListener('dragover', onDragOver);
+                card.addEventListener('drop', onDrop);
+                grid.appendChild(card);
+            });
+
+            const gridEl = document.getElementById('accountsGrid');
+            gridEl.addEventListener('dragover', onDragOver);
+            gridEl.addEventListener('drop', onDrop);
+            
+            // 执行搜索（如果有搜索词）
+            performSearch();
+        }
+
+        function performSearch() {
+            const searchQuery = document.getElementById('searchInput').value.trim();
+            const cards = document.querySelectorAll('.account-card');
+            
+            // 更新清空按钮状态
+            updateClearButton();
+
+            cards.forEach(card => {
+                const system = card.dataset.system;
+                const username = card.dataset.username;
+                const password = card.dataset.password;
+                const url = card.dataset.url || ''; // 获取URL
+                
+                const hit = !searchQuery ||
+                    system.includes(searchQuery) ||
+                    username.includes(searchQuery) ||
+                    password.includes(searchQuery);
+
+                // 先清状态
+                card.classList.remove('hit', 'dim');
+
+                // 根据是否命中加样式
+                if (searchQuery) {
+                    card.classList.add(hit ? 'hit' : 'dim');
+                }
+
+                const systemNameElement = card.querySelector('.system-name');
+                const valueEls = card.querySelectorAll('.item-value');
+
+                // 先移除旧的复制图标
+                const oldIcon = systemNameElement.querySelector('.copy-all-icon');
+                if (oldIcon) oldIcon.remove();
+
+                // 系统名
+                systemNameElement.innerHTML = searchQuery
+                    ? highlightText(system, searchQuery)
+                    : system;
+
+                // 重新添加链接图标
+                if (url) {
+                    // 先移除旧的链接图标
+                    const oldLinkIcon = systemNameElement.querySelector('.link-icon');
+                    if (oldLinkIcon) oldLinkIcon.remove();
+                    
+                    const linkIcon = createLinkIcon(url);
+                    systemNameElement.appendChild(linkIcon);
+                }
+                
+                // 重新添加删除按钮
+                const deleteIcon = createDeleteIcon(card.dataset.id, system);
+                systemNameElement.appendChild(deleteIcon);
+
+                // 账号 & 密码
+                valueEls[0].innerHTML = (searchQuery
+                    ? highlightText(username, searchQuery)
+                    : username) + '<span class="copy-hint">点击复制</span>';
+
+                valueEls[1].innerHTML = (searchQuery
+                    ? highlightText(password, searchQuery)
+                    : password) + '<span class="copy-hint">点击复制</span>';
+
+                // 重新绑定复制事件
+                valueEls[0].onclick = () => copyToClipboard(username, valueEls[0]);
+                valueEls[1].onclick = () => copyToClipboard(password, valueEls[1]);
+
+                // 重新加复制全部图标
+                const icon = createCopyAllIcon();
+                icon.dataset.system = system;
+                icon.dataset.username = username;
+                icon.dataset.password = password;
+                icon.dataset.url = url; // 添加URL到dataset
+
+                icon.addEventListener('click', e => {
+                    e.stopPropagation();
+                    // 构建要复制的文本：系统名称、URL、账号、密码
+                    let textToCopy = `${system}\n`;
+                    if (url) {
+                        textToCopy += `URL:${url}\n`;
+                    }
+                    textToCopy += `${username}\n`;
+                    textToCopy += `密码:${password}`;
+                    copyToClipboard(textToCopy, icon);
+                });
+
+                systemNameElement.appendChild(icon);
+            });
+        }
+
+        // 清空搜索函数
+        function clearSearch() {
+            document.getElementById('searchInput').value = '';
+            performSearch(); // 重新执行搜索以恢复原始状态
+        }
+
+        // 模态框相关函数
+        function openModal(account = null) {
+            const modal = document.getElementById('accountModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const form = document.getElementById('accountForm');
+            
+            if (account) {
+                // 编辑模式
+                modalTitle.textContent = '编辑账号';
+                document.getElementById('accountId').value = account.id;
+                document.getElementById('system').value = account.system;
+                document.getElementById('username').value = account.username;
+                document.getElementById('password').value = account.password;
+                document.getElementById('url').value = account.url || '';
+            } else {
+                // 新增模式
+                modalTitle.textContent = '新增账号';
+                form.reset();
+                document.getElementById('accountId').value = '';
+            }
+            
+            modal.classList.add('show');
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('accountModal');
+            modal.classList.remove('show');
+        }
+
+        // 保存账号
+        async function saveAccount(event) {
+            event.preventDefault();
+            
+            const id = document.getElementById('accountId').value;
+            const system = document.getElementById('system').value.trim();
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const url = document.getElementById('url').value.trim();
+            
+            if (!system || !username || !password) {
+                alert('系统名称、账号和密码不能为空！');
+                return;
+            }
+            
+            try {
+                const saveBtn = document.getElementById('saveBtn');
+                const originalText = saveBtn.textContent;
+                saveBtn.textContent = '保存中...';
+                saveBtn.disabled = true;
+                
+                const accountData = {
+                    system,
+                    username,
+                    password,
+                    url: url || '',
+                    order: accounts.length // 默认添加到末尾
+                };
+                
+                if (id) {
+                    // 更新现有账号
+                    const record = AccountTable.getWithoutData(id);
+                    record.set(accountData);
+                    await record.update();
+                    
+                    // 更新本地数据
+                    const index = accounts.findIndex(acc => acc.id === id);
+                    if (index !== -1) {
+                        accounts[index] = { ...accounts[index], ...accountData };
+                    }
+                    
+                    showToast('更新成功 ✅');
+                } else {
+                    // 新增账号
+                    const record = AccountTable.create();
+                    const result = await record.set(accountData).save();
+                    
+                    // 添加到本地数据
+                    accounts.push({
+                        id: result.data.id,
+                        ...accountData
+                    });
+                    
+                    showToast('新增成功 ✅');
+                }
+                
+                closeModal();
+                renderAccounts();
+                
+                saveBtn.textContent = originalText;
+                saveBtn.disabled = false;
+            } catch (error) {
+                console.error('保存失败:', error);
+                showToast('保存失败 ❌');
+                
+                const saveBtn = document.getElementById('saveBtn');
+                saveBtn.textContent = '保存';
+                saveBtn.disabled = false;
+            }
+        }
+
+        // 键盘快捷键
+        document.addEventListener('keydown', (e) => {
+            // 获取当前活动元素
+            const activeElement = document.activeElement;
+            const isInputFocused = activeElement.tagName === 'INPUT' || 
+                                  activeElement.tagName === 'TEXTAREA';
+            
+            // 只有在不是输入框聚焦时才执行部分快捷键
+            if (!isInputFocused) {
+                // Ctrl+F 聚焦搜索框
+                if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+                    e.preventDefault();
+                    document.getElementById('searchInput').focus();
+                    document.getElementById('searchInput').select();
+                }
+                
+                // Esc 清空搜索
+                if (e.key === 'Escape') {
+                    clearSearch();
+                }
+                
+                // Ctrl+N 新增账号
+                if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+                    e.preventDefault();
+                    openModal();
+                }
+            }
+            
+            // 无论什么情况都执行的快捷键
+            // 回车搜索（如果搜索框有焦点）
+            if (e.key === 'Enter' && activeElement.id === 'searchInput') {
+                performSearch();
+            }
+            
+            // Esc 清空搜索（即使输入框有焦点）
+            if (e.key === 'Escape' && activeElement.id === 'searchInput') {
+                clearSearch();
+            }
+            
+            // Esc 关闭模态框
+            if (e.key === 'Escape' && document.getElementById('accountModal').classList.contains('show')) {
+                closeModal();
             }
         });
-    }
 
-    // ===== 辅助功能 =====
-    function copyText(txt) {
-        navigator.clipboard.writeText(txt).then(() => showToast("已成功复制到剪贴板"));
-    }
-    function showToast(msg) {
-        const t = document.getElementById('toast');
-        t.textContent = msg; t.style.display = 'block';
-        setTimeout(() => t.style.display = 'none', 2000);
-    }
-    function openModal() { document.getElementById('modalOverlay').style.display = 'flex'; }
-    function closeModal() { document.getElementById('modalOverlay').style.display = 'none'; }
-    function updateTime() {
-        const now = new Date();
-        document.getElementById('timeDisplay').textContent = now.toLocaleTimeString('zh-CN', {hour12:false});
-        const weeks = ['星期日','星期一','星期二','星期三','星期四','星期五','星期六'];
-        document.getElementById('solarDate').textContent = `${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日 ${weeks[now.getDay()]}`;
-    }
-
-    setInterval(updateTime, 1000);
-    updateTime();
-    fetchAccounts();
-</script>
-
+        document.addEventListener('DOMContentLoaded', () => {
+            updateTime();
+            setInterval(updateTime, 1000);
+            
+            // 从知晓云获取数据
+            fetchAccounts();
+            
+            // 绑定搜索和清空事件
+            const searchInput = document.getElementById('searchInput');
+            const clearButton = document.getElementById('clearButton');
+            
+            clearButton.addEventListener('click', clearSearch);
+            
+            searchInput.addEventListener('keyup', (e) => {
+                if (e.key === 'Enter') {
+                    performSearch();
+                }
+            });
+            
+            // 实现实时搜索
+            searchInput.addEventListener('input', performSearch);
+            
+            // 初始更新清空按钮状态
+            updateClearButton();
+            
+            // 绑定模态框事件
+            const addButton = document.getElementById('addButton');
+            const modalClose = document.getElementById('modalClose');
+            const cancelBtn = document.getElementById('cancelBtn');
+            const accountForm = document.getElementById('accountForm');
+            
+            addButton.addEventListener('click', () => openModal());
+            modalClose.addEventListener('click', closeModal);
+            cancelBtn.addEventListener('click', closeModal);
+            accountForm.addEventListener('submit', saveAccount);
+            
+            // 点击模态框外部关闭
+            document.getElementById('accountModal').addEventListener('click', (e) => {
+                if (e.target.id === 'accountModal') {
+                    closeModal();
+                }
+            });
+        });
+    </script>
 </body>
 </html>
-
