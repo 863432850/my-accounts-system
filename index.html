@@ -8,14 +8,13 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
-/* ===== 原 V3 CSS，完全未改 ===== */
 *{margin:0;padding:0;box-sizing:border-box}
 body{
 font-family:'Microsoft YaHei',Arial;
 background:linear-gradient(135deg,#a8e6cf,#dcedc8,#f0f4c3);
 min-height:100vh;padding:20px;color:#333}
 .container{max-width:1400px;margin:0 auto}
-.header{display:grid;grid-template-columns:auto auto 1fr;align-items:center;margin-bottom:30px;color:#2e7d32}
+.header{margin-bottom:30px;color:#2e7d32}
 .header h1{font-size:2.5rem}
 .accounts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:15px}
 .account-card{
@@ -26,15 +25,13 @@ transition:.3s;cursor:move;position:relative}
 .account-card:hover{transform:translateY(-5px) scale(1.01)}
 .system-name{
 font-size:1.2rem;font-weight:bold;color:#2e7d32;
-padding:6px 36px 6px 10px;border-bottom:2px solid #c8e6c9;
-position:relative}
+padding:6px 36px 6px 10px;border-bottom:2px solid #c8e6c9}
 .account-item{display:flex;gap:10px;padding:6px 10px}
 .item-label{color:#4caf50;width:40px}
 .item-value{
 flex:1;background:#f1f8e9;border:2px solid #c8e6c9;
 border-radius:8px;padding:6px 10px;cursor:pointer}
-.menu{
-position:absolute;right:6px;top:6px;cursor:pointer;font-size:18px}
+.menu{position:absolute;right:6px;top:6px;cursor:pointer;font-size:18px}
 .menu-panel{
 display:none;position:absolute;right:0;top:20px;
 background:#fff;border-radius:8px;
@@ -47,15 +44,14 @@ padding:8px 14px;color:#c62828;cursor:pointer}
 position:fixed;right:26px;bottom:26px;
 width:54px;height:54px;border-radius:50%;
 background:#4caf50;color:#fff;font-size:30px;
-border:none;cursor:pointer;box-shadow:0 8px 20px rgba(0,0,0,.2)}
+border:none;cursor:pointer}
 .modal{
 display:none;position:fixed;inset:0;
 background:rgba(0,0,0,.45);
 align-items:center;justify-content:center}
 .modal-content{
 background:#fff;padding:20px;border-radius:16px;width:340px}
-.modal-content input{
-width:100%;margin-bottom:10px;padding:8px}
+.modal-content input{width:100%;margin-bottom:10px;padding:8px}
 .modal-content button{
 width:100%;padding:10px;background:#4caf50;
 color:#fff;border:none;border-radius:8px}
@@ -84,26 +80,26 @@ color:#fff;border:none;border-radius:8px}
 </div>
 
 <script>
-/* ===== Supabase 配置（只改这里） ===== */
+/* ===== Supabase 配置 ===== */
 const SUPABASE_URL = 'https://lxuomiimbnterkxzquba.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx4dW9taWltYm50ZXJreHpxdWJhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5MzYyNDksImV4cCI6MjA4MjUxMjI0OX0.LZOFm_VS0y5UF0vBR8y2y90Wrq_cMmIvggnXL_JM6h0';
-/* =================================== */
+/* ======================== */
 
-const supabase = supabaseJs.createClient(SUPABASE_URL, SUPABASE_KEY);
+/* 用 db，避免冲突 */
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
 const grid = document.getElementById('accountsGrid');
+const modal = document.getElementById('modal');
 let draggedCard = null;
 
-/* 加载数据 */
 async function loadAccounts(){
-  const { data } = await supabase
-    .from('accounts')
+  const { data } = await db.from('accounts')
     .select('*')
     .order('sort_order');
   grid.innerHTML='';
   data.forEach(renderCard);
 }
 
-/* 渲染卡片（完全保留 V3 风格） */
 function renderCard(a){
   const card=document.createElement('div');
   card.className='account-card';
@@ -133,46 +129,47 @@ function renderCard(a){
   grid.appendChild(card);
 }
 
-/* 拖拽排序保存 */
 async function onDrop(target){
   if(draggedCard!==target){
     grid.insertBefore(draggedCard,target);
     await saveOrder();
   }
 }
+
 async function saveOrder(){
   const updates=[...grid.children].map((c,i)=>({
     id:c.dataset.id,sort_order:i+1
   }));
-  await supabase.from('accounts').upsert(updates);
+  await db.from('accounts').upsert(updates);
 }
 
-/* 新增 */
 function openModal(){modal.style.display='flex'}
+
 async function addAccount(){
-  const { data:max }=await supabase.from('accounts')
-    .select('sort_order').order('sort_order',{ascending:false})
+  const { data:max } = await db.from('accounts')
+    .select('sort_order')
+    .order('sort_order',{ascending:false})
     .limit(1).single();
-  await supabase.from('accounts').insert([{
+
+  await db.from('accounts').insert([{
     system:sys.value,
     username:user.value,
     password:pwd.value,
     url:url.value,
     sort_order:(max?.sort_order||0)+1
   }]);
+
   modal.style.display='none';
   loadAccounts();
 }
 
-/* 删除（防误触） */
 async function removeAccount(id){
   if(confirm('确认删除？')){
-    await supabase.from('accounts').delete().eq('id',id);
+    await db.from('accounts').delete().eq('id',id);
     loadAccounts();
   }
 }
 
-/* 复制 */
 function copyText(t){navigator.clipboard.writeText(t)}
 
 loadAccounts();
