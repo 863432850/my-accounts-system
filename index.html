@@ -96,21 +96,21 @@
         }
 
         // ======= 2. 核心：从云端获取数据 =======
-        async function fetchAccounts() {
-            try {
-                let table = new BaaS.TableObject(TABLE_NAME);
-                // 解决只显示3条的问题：显式设置 limit 并取消所有过滤限制
-                let res = await table.limit(100).orderBy('-created_at').find();
-                
-                const objects = res.data.objects;
-                console.log("云端实际返回总数:", objects.length);
-                renderCards(objects);
-            } catch (err) {
-                console.error(err);
-                document.getElementById('accountsGrid').innerHTML = `<div class="loading-tip" style="color:red">加载失败：请检查知晓云后台安全域名设置是否为 * </div>`;
-            }
-        }
+       async function fetchAccounts() {
+    try {
+        let table = new BaaS.TableObject(TABLE_NAME);
+        // 加上 limit 确保数量
+        let res = await table.limit(100).find();
+        
+        // 【关键调试行】在控制台打印原始数组
+        console.log("知晓云返回的原始数组:", res.data.objects);
+        alert("云端实际返回了 " + res.data.objects.length + " 条数据");
 
+        renderCards(res.data.objects);
+    } catch (err) {
+        console.error("加载错误:", err);
+    }
+}
         // ======= 3. 渲染卡片 =======
         function renderCards(data) {
             const grid = document.getElementById('accountsGrid');
@@ -191,3 +191,4 @@
     </script>
 </body>
 </html>
+
