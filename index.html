@@ -7,7 +7,7 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔐</text></svg>">
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <style>
-        /* ================= 1. 基础风格保持 ================= */
+        /* ================= 基础布局 ================= */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
@@ -16,6 +16,7 @@
         }
         .container { max-width: 1400px; margin: 0 auto; }
         
+        /* Header 保持 */
         .header { display: grid; grid-template-columns: auto auto 1fr; align-items: center; margin-bottom: 30px; color: #2e7d32; }
         .header h1 { font-size: 2.5rem; text-shadow: 1px 1px 2px rgba(0,0,0,0.1); margin-right: 20px; }
         .time-search-container { display: flex; align-items: center; gap: 15px; margin-left: 40px; }
@@ -23,7 +24,7 @@
         .time-display { font-size: 1.8rem; font-weight: bold; color: #2e7d32; font-family: 'Courier New', monospace; }
         .date-display { display: flex; justify-content: center; align-items: center; gap: 20px; font-size: 1rem; color: #388e3c; }
 
-        /* 搜索框风格 */
+        /* 搜索框 */
         .search-container { position: relative; display: flex; align-items: center; }
         .search-icon-fixed { position: absolute; left: 10px; width: 16px; height: 16px; color: #4caf50; pointer-events: none; }
         .search-input {
@@ -33,84 +34,89 @@
         .search-input:focus { outline: none; border-color: #4caf50; }
         .clear-button { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: #ff6b6b; border: none; color: white; cursor: pointer; font-size: 10px; width: 16px; height: 16px; display: none; align-items: center; justify-content: center; border-radius: 50%; }
 
-        /* 卡片展示 */
+        /* ================= 卡片强化优化 ================= */
         .accounts-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 15px; margin-top: 20px; }
         .account-card { 
             background: rgba(255, 255, 255, 0.95); border-radius: 15px; padding: 12px; 
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1.5px solid transparent; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 2px solid transparent; 
             position: relative; transition: all 0.3s ease; overflow: hidden;
         }
-        .account-card:hover { border-color: #81c784; box-shadow: 0 8px 25px rgba(46, 125, 50, 0.15); background: #ffffff; }
+        /* 悬浮边框和阴影更明显 */
+        .account-card:hover { 
+            border-color: #4caf50; /* 明显的深绿边框 */
+            box-shadow: 0 12px 35px rgba(46, 125, 50, 0.25); /* 更深邃的阴影 */
+            background: #ffffff;
+            transform: scale(1.01); /* 微小的放大感 */
+        }
         .sortable-ghost { opacity: 0.4; border: 2px dashed #4caf50; }
         .system-name { font-size: 1.2rem; font-weight: bold; color: #2e7d32; margin-bottom: 10px; padding: 0 115px 8px 10px; border-bottom: 2px solid #c8e6c9; position: relative; cursor: grab; }
         .account-item { display: flex; align-items: center; margin-top: 8px; gap: 10px; padding: 0 10px; }
         .item-label { font-size: 0.9rem; color: #4caf50; font-weight: 500; width: 40px; }
         .item-value { background: #f1f8e9; border: 2px solid #e8f5e9; border-radius: 8px; padding: 6px 10px; cursor: pointer; flex: 1; font-family: 'Courier New', monospace; font-size: 0.9rem; transition: 0.2s; }
-        .item-value:hover { border-color: #a5d6a7; background: #fff; }
+        .item-value:hover { border-color: #a5d6a7; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
 
-        /* ================= 2. 优化：高级毛玻璃删除抽屉 ================= */
+        /* 删除抽屉（毛玻璃） */
         .delete-bar { 
             position: absolute; bottom: -60px; left: 0; width: 100%; height: 55px; 
-            background: rgba(255, 235, 238, 0.7); /* 淡粉色透明背景 */
-            backdrop-filter: blur(12px); /* 核心毛玻璃效果 */
-            -webkit-backdrop-filter: blur(12px);
-            border-top: 1px solid rgba(255, 255, 255, 0.5); 
-            display: flex; align-items: center; justify-content: space-between; 
-            padding: 0 15px; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 10;
-            box-shadow: 0 -5px 15px rgba(0,0,0,0.03);
+            background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            border-top: 1px solid rgba(255, 255, 255, 0.5); display: flex; align-items: center; justify-content: space-between; 
+            padding: 0 15px; transition: 0.4s; z-index: 10;
         }
         .delete-bar.active { bottom: 0; }
-        .mini-btn { padding: 6px 12px; border: none; border-radius: 8px; cursor: pointer; font-size: 11px; font-weight: bold; transition: 0.2s; }
-        .btn-cancel-mini { background: rgba(0,0,0,0.05); color: #666; }
-        .btn-confirm-mini { background: #f44336; color: white; box-shadow: 0 2px 6px rgba(244, 67, 54, 0.3); }
-        .btn-confirm-mini:hover { background: #d32f2f; transform: scale(1.05); }
+        .mini-btn { padding: 6px 12px; border: none; border-radius: 8px; cursor: pointer; font-size: 11px; font-weight: bold; }
 
-        /* ================= 3. 优化：更高级的新增按钮 + 旋转 ================= */
+        /* ================= 高级弹窗回归 ================= */
+        .modal-overlay { 
+            position: fixed; inset: 0; background: rgba(46, 125, 50, 0.15); backdrop-filter: blur(10px); 
+            display: none; justify-content: center; align-items: center; z-index: 2000;
+        }
+        .modal-overlay.show { display: flex; animation: fadeIn 0.3s ease-out; }
+        .modal { 
+            background: #ffffff; padding: 40px; border-radius: 28px; width: 480px; 
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15); position: relative; 
+        }
+        .modal-title { font-size: 1.8rem; color: #1b5e20; font-weight: 800; margin-bottom: 25px; }
+        .form-group { margin-bottom: 20px; position: relative; }
+        .form-group label { display: block; font-size: 0.85rem; font-weight: 700; color: #2e7d32; margin-bottom: 8px; }
+        .required::after { content: ' *'; color: #ff5252; }
+        
+        .input-wrapper { position: relative; }
+        .input-wrapper::before {
+            content: ''; position: absolute; left: 0; top: 15%; height: 70%; width: 4px;
+            background: #c8e6c9; border-radius: 0 4px 4px 0; transition: 0.3s;
+        }
+        .form-group input { 
+            width: 100%; padding: 14px 16px 14px 20px; border: 1px solid #edf2f7; 
+            background: #f8fafc; border-radius: 14px; font-size: 1rem; outline: none; transition: 0.3s; 
+        }
+        .form-group input:focus { border-color: #4caf50; background: #fff; }
+        .form-group input:focus + .input-wrapper::before { background: #4caf50; }
+
+        /* ================= 新增按钮（仅加号） ================= */
         .add-btn { 
             position: fixed; bottom: 35px; right: 35px; width: 64px; height: 64px; 
             border-radius: 50%; background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%); 
             color: white; border: none; cursor: pointer; 
             box-shadow: 0 6px 20px rgba(76,175,80,0.4); 
-            display: flex; align-items: center; justify-content: center; 
-            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 999; 
+            display: flex; align-items: center; justify-content: center; z-index: 999;
         }
-        /* 高级加号图标 */
-        .add-btn-icon { width: 32px; height: 32px; fill: none; stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; transition: 0.6s; }
-        
-        .add-btn:hover { 
-            transform: scale(1.1); 
-            box-shadow: 0 10px 25px rgba(76,175,80,0.5); 
-        }
-        .add-btn:hover .add-btn-icon { 
-            transform: rotate(360deg); /* 全量旋转 */
-        }
+        .add-btn svg { width: 35px; height: 35px; transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .add-btn:hover { transform: scale(1.1); box-shadow: 0 10px 25px rgba(76,175,80,0.5); }
+        .add-btn:hover svg { transform: rotate(180deg); }
 
-        /* ================= 4. 优化：链接 TIPS 动态位置与淡入淡出 ================= */
+        /* ================= TIPS 防溢出 ================= */
         .url-tooltip { 
-            position: fixed; background: rgba(20, 20, 20, 0.85); 
-            backdrop-filter: blur(6px); color: #fff; padding: 8px 14px; 
-            border-radius: 8px; font-size: 12px; pointer-events: none; 
-            z-index: 10000; box-shadow: 0 8px 16px rgba(0,0,0,0.2);
-            /* 淡入淡出动画控制 */
-            opacity: 0; transform: translateY(-5px); 
-            transition: opacity 0.3s ease, transform 0.3s ease; 
-            white-space: nowrap;
+            position: fixed; background: rgba(20, 20, 20, 0.9); backdrop-filter: blur(6px);
+            color: #fff; padding: 8px 14px; border-radius: 8px; font-size: 12px; 
+            z-index: 10000; opacity: 0; transform: translateY(5px); pointer-events: none;
+            transition: opacity 0.3s, transform 0.3s; white-space: nowrap;
         }
         .url-tooltip.show { opacity: 1; transform: translateY(0); }
 
-        /* 其他模态框样式 */
-        .modal-overlay { position: fixed; inset: 0; background: rgba(46, 125, 50, 0.15); backdrop-filter: blur(10px); display: none; justify-content: center; align-items: center; z-index: 2000; transition: 0.3s; }
-        .modal-overlay.show { display: flex; animation: fadeIn 0.3s ease-out; }
-        .modal { background: #ffffff; padding: 40px; border-radius: 28px; width: 480px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15); position: relative; }
-        .required::after { content: ' *'; color: #ff5252; margin-left: 4px; font-size: 1.1rem; }
-        .form-group { margin-bottom: 20px; }
-        .form-group input { width: 100%; padding: 14px 16px; border: 1px solid #edf2f7; background: #f8fafc; border-radius: 14px; font-size: 1rem; outline: none; transition: 0.3s; }
-        .form-group input:focus { background: #fff; border-color: #4caf50; box-shadow: 0 10px 15px -3px rgba(76, 175, 80, 0.1); }
         .toast { position: fixed; top: 20px; right: 20px; background: #333; color: white; padding: 10px 20px; border-radius: 8px; transform: translateX(200%); transition: 0.3s; z-index: 10001; }
         .toast.show { transform: translateX(0); }
         @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
         
-        /* 图标定位保持 */
         .card-icon { position: absolute; top: 50%; transform: translateY(-50%); cursor: pointer; opacity: 0.6; transition: 0.2s; }
         .card-icon:hover { opacity: 1; transform: translateY(-50%) scale(1.1); }
         .copy-all-icon { right: 8px; } .delete-icon { right: 34px; } .edit-icon { right: 60px; } .link-icon { right: 86px; color: #2196f3; }
@@ -140,23 +146,35 @@
 
     <div class="modal-overlay" id="modalOverlay">
         <div class="modal">
-            <div style="margin-bottom:25px;"><h2 id="modalTitle" style="color:#1b5e20;">新增账号</h2></div>
+            <div class="modal-title" id="modalTitle">新增账号</div>
             <form id="accountForm">
                 <input type="hidden" id="accountId">
-                <div class="form-group"><label class="required">系统名称</label><input type="text" id="system" required></div>
-                <div class="form-group"><label class="required">登录账号</label><input type="text" id="username" required></div>
-                <div class="form-group"><label class="required">登录密码</label><input type="text" id="password" required></div>
-                <div class="form-group"><label>访问地址 (URL)</label><input type="text" id="url"></div>
-                <div style="display:flex; gap:15px; margin-top:30px;">
-                    <button type="button" class="mini-btn" style="flex:1; padding:12px; background:#f1f5f9; color:#64748b;" onclick="closeModal()">取消</button>
-                    <button type="submit" class="mini-btn" style="flex:1; padding:12px; background:#4caf50; color:white;">保存</button>
+                <div class="form-group">
+                    <label class="required">系统名称</label>
+                    <div class="input-wrapper"><input type="text" id="system" required></div>
+                </div>
+                <div class="form-group">
+                    <label class="required">登录账号</label>
+                    <div class="input-wrapper"><input type="text" id="username" required></div>
+                </div>
+                <div class="form-group">
+                    <label class="required">登录密码</label>
+                    <div class="input-wrapper"><input type="text" id="password" required></div>
+                </div>
+                <div class="form-group">
+                    <label>访问地址 (URL)</label>
+                    <div class="input-wrapper"><input type="text" id="url"></div>
+                </div>
+                <div style="display:flex; gap:15px; margin-top:35px;">
+                    <button type="button" class="mini-btn" style="flex:1; padding:14px; background:#f1f5f9; color:#64748b;" onclick="closeModal()">取消</button>
+                    <button type="submit" class="mini-btn" style="flex:1; padding:14px; background:#4caf50; color:white; box-shadow: 0 4px 12px rgba(76,175,80,0.3);">立即保存</button>
                 </div>
             </form>
         </div>
     </div>
 
     <button class="add-btn" id="addBtn">
-        <svg class="add-btn-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
     </button>
     
     <div id="globalTooltip" class="url-tooltip"></div>
@@ -186,7 +204,7 @@
                         supabaseClient.from('accounts').update({ sort_order: index }).eq('id', card.dataset.id)
                     );
                     await Promise.all(updates);
-                    showToast('排列顺序已同步');
+                    showToast('排列已同步');
                 }
             });
         }
@@ -200,14 +218,11 @@
         function render(keyword = '') {
             const grid = document.getElementById('accountsGrid');
             grid.innerHTML = '';
-            const lowKey = keyword.toLowerCase();
-
             accounts.forEach(acc => {
-                const isMatch = acc.system.toLowerCase().includes(lowKey) || acc.username.toLowerCase().includes(lowKey);
+                const isMatch = acc.system.toLowerCase().includes(keyword.toLowerCase()) || acc.username.toLowerCase().includes(keyword.toLowerCase());
                 const card = document.createElement('div');
                 card.className = `account-card ${keyword && !isMatch ? 'dim' : ''}`;
                 card.dataset.id = acc.id;
-
                 card.innerHTML = `
                     <div class="system-name">
                         <span>${keyword ? acc.system.replace(new RegExp(`(${keyword})`, 'gi'), '<b style="color:#d32f2f">$1</b>') : acc.system}</span>
@@ -219,15 +234,13 @@
                     <div class="account-item"><div class="item-label">账号</div><div class="item-value" onclick="copyText('${acc.username}', '账号')">${acc.username}</div></div>
                     <div class="account-item"><div class="item-label">密码</div><div class="item-value" onclick="copyText('${acc.password}', '密码')">${acc.password}</div></div>
                     <div class="delete-bar">
-                        <span style="font-size:12px; color:#c62828; font-weight:bold;">确认永久删除？</span>
+                        <span style="font-size:12px; color:#c62828; font-weight:bold;">确认删除该记录？</span>
                         <div style="display:flex; gap:10px;">
-                            <button class="mini-btn btn-cancel-mini" onclick="toggleDelBar(this, false)">返回</button>
-                            <button class="mini-btn btn-confirm-mini" onclick="doDelete('${acc.id}')">确定删除</button>
+                            <button class="mini-btn" style="background:rgba(0,0,0,0.05);" onclick="toggleDelBar(this, false)">取消</button>
+                            <button class="mini-btn" style="background:#f44336; color:white;" onclick="doDelete('${acc.id}')">确认</button>
                         </div>
                     </div>
                 `;
-
-                // 绑定 Tips 事件 (出现在鼠标下方)
                 const linkIcon = card.querySelector('.link-icon');
                 if (linkIcon) {
                     linkIcon.onmouseenter = (e) => showTooltip(e, acc.url);
@@ -238,20 +251,29 @@
             });
         }
 
+        // ================= 修复：防溢出显示逻辑 =================
         function showTooltip(e, text) {
             const tip = document.getElementById('globalTooltip');
             tip.innerText = text;
             tip.classList.add('show');
-            // 定位在鼠标下方 25px 处
-            tip.style.left = e.clientX + 'px'; 
-            tip.style.top = (e.clientY + 25) + 'px'; 
+            
+            let x = e.clientX + 10;
+            let y = e.clientY + 25;
+            
+            // 边界检测
+            const tipWidth = tip.offsetWidth;
+            const tipHeight = tip.offsetHeight;
+            
+            if (x + tipWidth > window.innerWidth) x = e.clientX - tipWidth - 10;
+            if (y + tipHeight > window.innerHeight) y = e.clientY - tipHeight - 10;
+            
+            tip.style.left = x + 'px';
+            tip.style.top = y + 'px';
         }
         function hideTooltip() { document.getElementById('globalTooltip').classList.remove('show'); }
 
         function toggleDelBar(el, show) { el.closest('.account-card').querySelector('.delete-bar').classList.toggle('active', show); }
-
-        async function doDelete(id) { await supabaseClient.from('accounts').delete().eq('id', id); showToast('已成功移除记录'); loadData(); }
-
+        async function doDelete(id) { await supabaseClient.from('accounts').delete().eq('id', id); showToast('已删除'); loadData(); }
         function bindEvents() {
             const si = document.getElementById('searchInput');
             si.oninput = (e) => {
@@ -262,21 +284,14 @@
             document.getElementById('addBtn').onclick = () => openModal();
             document.getElementById('accountForm').onsubmit = handleSave;
         }
-
         async function handleSave(e) {
             e.preventDefault();
             const id = document.getElementById('accountId').value;
-            const payload = {
-                system: document.getElementById('system').value,
-                username: document.getElementById('username').value,
-                password: document.getElementById('password').value,
-                url: document.getElementById('url').value
-            };
+            const payload = { system: document.getElementById('system').value, username: document.getElementById('username').value, password: document.getElementById('password').value, url: document.getElementById('url').value };
             if(!id) payload.sort_order = accounts.length;
             const { error } = id ? await supabaseClient.from('accounts').update(payload).eq('id', id) : await supabaseClient.from('accounts').insert([payload]);
             if (!error) { closeModal(); loadData(); showToast('保存成功'); }
         }
-
         function openModal(id = null) {
             document.getElementById('accountForm').reset();
             document.getElementById('accountId').value = id || '';
@@ -292,14 +307,8 @@
         }
         function closeModal() { document.getElementById('modalOverlay').classList.remove('show'); }
         function copyText(t, type) { navigator.clipboard.writeText(t).then(() => showToast(`${type}已复制`)); }
-        function copyAll(id) {
-            const acc = accounts.find(a => a.id === id);
-            copyText(`系统：${acc.system}\n账号：${acc.username}\n密码：${acc.password}`, '完整资料');
-        }
-        function showToast(m) {
-            const t = document.getElementById('toast'); t.innerText = m; t.classList.add('show');
-            setTimeout(() => t.classList.remove('show'), 2000);
-        }
+        function copyAll(id) { const acc = accounts.find(a => a.id === id); copyText(`系统：${acc.system}\n账号：${acc.username}\n密码：${acc.password}`, '全部信息'); }
+        function showToast(m) { const t = document.getElementById('toast'); t.innerText = m; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2000); }
         function updateTime() {
             const now = new Date();
             document.getElementById('timeDisplay').innerText = now.toTimeString().split(' ')[0];
