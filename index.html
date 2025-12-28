@@ -7,7 +7,7 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔐</text></svg>">
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <style>
-        /* ================= 基础布局 ================= */
+        /* ================= 基础布局保持 ================= */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
@@ -16,7 +16,6 @@
         }
         .container { max-width: 1400px; margin: 0 auto; }
         
-        /* Header 保持 */
         .header { display: grid; grid-template-columns: auto auto 1fr; align-items: center; margin-bottom: 30px; color: #2e7d32; }
         .header h1 { font-size: 2.5rem; text-shadow: 1px 1px 2px rgba(0,0,0,0.1); margin-right: 20px; }
         .time-search-container { display: flex; align-items: center; gap: 15px; margin-left: 40px; }
@@ -24,7 +23,6 @@
         .time-display { font-size: 1.8rem; font-weight: bold; color: #2e7d32; font-family: 'Courier New', monospace; }
         .date-display { display: flex; justify-content: center; align-items: center; gap: 20px; font-size: 1rem; color: #388e3c; }
 
-        /* 搜索框 */
         .search-container { position: relative; display: flex; align-items: center; }
         .search-icon-fixed { position: absolute; left: 10px; width: 16px; height: 16px; color: #4caf50; pointer-events: none; }
         .search-input {
@@ -34,19 +32,18 @@
         .search-input:focus { outline: none; border-color: #4caf50; }
         .clear-button { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: #ff6b6b; border: none; color: white; cursor: pointer; font-size: 10px; width: 16px; height: 16px; display: none; align-items: center; justify-content: center; border-radius: 50%; }
 
-        /* ================= 卡片强化优化 ================= */
+        /* 卡片样式强化 */
         .accounts-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 15px; margin-top: 20px; }
         .account-card { 
             background: rgba(255, 255, 255, 0.95); border-radius: 15px; padding: 12px; 
             box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 2px solid transparent; 
             position: relative; transition: all 0.3s ease; overflow: hidden;
         }
-        /* 悬浮边框和阴影更明显 */
         .account-card:hover { 
-            border-color: #4caf50; /* 明显的深绿边框 */
-            box-shadow: 0 12px 35px rgba(46, 125, 50, 0.25); /* 更深邃的阴影 */
+            border-color: #4caf50; 
+            box-shadow: 0 12px 35px rgba(46, 125, 50, 0.25); 
             background: #ffffff;
-            transform: scale(1.01); /* 微小的放大感 */
+            transform: scale(1.01);
         }
         .sortable-ghost { opacity: 0.4; border: 2px dashed #4caf50; }
         .system-name { font-size: 1.2rem; font-weight: bold; color: #2e7d32; margin-bottom: 10px; padding: 0 115px 8px 10px; border-bottom: 2px solid #c8e6c9; position: relative; cursor: grab; }
@@ -55,17 +52,26 @@
         .item-value { background: #f1f8e9; border: 2px solid #e8f5e9; border-radius: 8px; padding: 6px 10px; cursor: pointer; flex: 1; font-family: 'Courier New', monospace; font-size: 0.9rem; transition: 0.2s; }
         .item-value:hover { border-color: #a5d6a7; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
 
-        /* 删除抽屉（毛玻璃） */
+        /* ================= 优化重点：深红色高级毛玻璃删除抽屉 ================= */
         .delete-bar { 
-            position: absolute; bottom: -60px; left: 0; width: 100%; height: 55px; 
-            background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-            border-top: 1px solid rgba(255, 255, 255, 0.5); display: flex; align-items: center; justify-content: space-between; 
-            padding: 0 15px; transition: 0.4s; z-index: 10;
+            position: absolute; bottom: -65px; left: 0; width: 100%; height: 58px; 
+            background: rgba(211, 47, 47, 0.85); /* 高级深红 */
+            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            border-top: 1px solid rgba(255, 255, 255, 0.2); 
+            display: flex; align-items: center; justify-content: space-between; 
+            padding: 0 18px; transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 10;
         }
         .delete-bar.active { bottom: 0; }
-        .mini-btn { padding: 6px 12px; border: none; border-radius: 8px; cursor: pointer; font-size: 11px; font-weight: bold; }
+        .delete-bar span { color: #ffffff; font-size: 13px; font-weight: 600; letter-spacing: 0.5px; }
+        
+        /* 删除条内的按钮优化 */
+        .mini-btn-del { padding: 7px 14px; border: none; border-radius: 8px; cursor: pointer; font-size: 11px; font-weight: 800; transition: 0.2s; }
+        .btn-cancel-red { background: rgba(255, 255, 255, 0.2); color: #ffffff; }
+        .btn-cancel-red:hover { background: rgba(255, 255, 255, 0.3); }
+        .btn-confirm-red { background: #ffffff; color: #d32f2f; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .btn-confirm-red:hover { transform: translateY(-1px); box-shadow: 0 6px 15px rgba(0,0,0,0.2); }
 
-        /* ================= 高级弹窗回归 ================= */
+        /* ================= 弹窗样式（回归高级版） ================= */
         .modal-overlay { 
             position: fixed; inset: 0; background: rgba(46, 125, 50, 0.15); backdrop-filter: blur(10px); 
             display: none; justify-content: center; align-items: center; z-index: 2000;
@@ -79,20 +85,16 @@
         .form-group { margin-bottom: 20px; position: relative; }
         .form-group label { display: block; font-size: 0.85rem; font-weight: 700; color: #2e7d32; margin-bottom: 8px; }
         .required::after { content: ' *'; color: #ff5252; }
-        
         .input-wrapper { position: relative; }
         .input-wrapper::before {
             content: ''; position: absolute; left: 0; top: 15%; height: 70%; width: 4px;
             background: #c8e6c9; border-radius: 0 4px 4px 0; transition: 0.3s;
         }
-        .form-group input { 
-            width: 100%; padding: 14px 16px 14px 20px; border: 1px solid #edf2f7; 
-            background: #f8fafc; border-radius: 14px; font-size: 1rem; outline: none; transition: 0.3s; 
-        }
+        .form-group input { width: 100%; padding: 14px 16px 14px 20px; border: 1px solid #edf2f7; background: #f8fafc; border-radius: 14px; font-size: 1rem; outline: none; transition: 0.3s; }
         .form-group input:focus { border-color: #4caf50; background: #fff; }
         .form-group input:focus + .input-wrapper::before { background: #4caf50; }
 
-        /* ================= 新增按钮（仅加号） ================= */
+        /* ================= 新增按钮（纯加号） ================= */
         .add-btn { 
             position: fixed; bottom: 35px; right: 35px; width: 64px; height: 64px; 
             border-radius: 50%; background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%); 
@@ -166,8 +168,8 @@
                     <div class="input-wrapper"><input type="text" id="url"></div>
                 </div>
                 <div style="display:flex; gap:15px; margin-top:35px;">
-                    <button type="button" class="mini-btn" style="flex:1; padding:14px; background:#f1f5f9; color:#64748b;" onclick="closeModal()">取消</button>
-                    <button type="submit" class="mini-btn" style="flex:1; padding:14px; background:#4caf50; color:white; box-shadow: 0 4px 12px rgba(76,175,80,0.3);">立即保存</button>
+                    <button type="button" class="mini-btn-del" style="flex:1; padding:14px; background:#f1f5f9; color:#64748b;" onclick="closeModal()">取消</button>
+                    <button type="submit" class="mini-btn-del" style="flex:1; padding:14px; background:#4caf50; color:white; box-shadow: 0 4px 12px rgba(76,175,80,0.3);">立即保存</button>
                 </div>
             </form>
         </div>
@@ -204,7 +206,7 @@
                         supabaseClient.from('accounts').update({ sort_order: index }).eq('id', card.dataset.id)
                     );
                     await Promise.all(updates);
-                    showToast('排列已同步');
+                    showToast('排序已保存');
                 }
             });
         }
@@ -234,10 +236,10 @@
                     <div class="account-item"><div class="item-label">账号</div><div class="item-value" onclick="copyText('${acc.username}', '账号')">${acc.username}</div></div>
                     <div class="account-item"><div class="item-label">密码</div><div class="item-value" onclick="copyText('${acc.password}', '密码')">${acc.password}</div></div>
                     <div class="delete-bar">
-                        <span style="font-size:12px; color:#c62828; font-weight:bold;">确认删除该记录？</span>
+                        <span>⚠️ 确认永久删除该账号吗？</span>
                         <div style="display:flex; gap:10px;">
-                            <button class="mini-btn" style="background:rgba(0,0,0,0.05);" onclick="toggleDelBar(this, false)">取消</button>
-                            <button class="mini-btn" style="background:#f44336; color:white;" onclick="doDelete('${acc.id}')">确认</button>
+                            <button class="mini-btn-del btn-cancel-red" onclick="toggleDelBar(this, false)">返回</button>
+                            <button class="mini-btn-del btn-confirm-red" onclick="doDelete('${acc.id}')">确认删除</button>
                         </div>
                     </div>
                 `;
@@ -251,29 +253,20 @@
             });
         }
 
-        // ================= 修复：防溢出显示逻辑 =================
         function showTooltip(e, text) {
             const tip = document.getElementById('globalTooltip');
             tip.innerText = text;
             tip.classList.add('show');
-            
-            let x = e.clientX + 10;
-            let y = e.clientY + 25;
-            
-            // 边界检测
-            const tipWidth = tip.offsetWidth;
-            const tipHeight = tip.offsetHeight;
-            
-            if (x + tipWidth > window.innerWidth) x = e.clientX - tipWidth - 10;
-            if (y + tipHeight > window.innerHeight) y = e.clientY - tipHeight - 10;
-            
-            tip.style.left = x + 'px';
-            tip.style.top = y + 'px';
+            let x = e.clientX + 10, y = e.clientY + 25;
+            if (x + tip.offsetWidth > window.innerWidth) x = e.clientX - tip.offsetWidth - 10;
+            if (y + tip.offsetHeight > window.innerHeight) y = e.clientY - tip.offsetHeight - 10;
+            tip.style.left = x + 'px'; tip.style.top = y + 'px';
         }
         function hideTooltip() { document.getElementById('globalTooltip').classList.remove('show'); }
 
         function toggleDelBar(el, show) { el.closest('.account-card').querySelector('.delete-bar').classList.toggle('active', show); }
-        async function doDelete(id) { await supabaseClient.from('accounts').delete().eq('id', id); showToast('已删除'); loadData(); }
+        async function doDelete(id) { await supabaseClient.from('accounts').delete().eq('id', id); showToast('已成功删除'); loadData(); }
+        
         function bindEvents() {
             const si = document.getElementById('searchInput');
             si.oninput = (e) => {
@@ -284,6 +277,7 @@
             document.getElementById('addBtn').onclick = () => openModal();
             document.getElementById('accountForm').onsubmit = handleSave;
         }
+
         async function handleSave(e) {
             e.preventDefault();
             const id = document.getElementById('accountId').value;
@@ -292,6 +286,7 @@
             const { error } = id ? await supabaseClient.from('accounts').update(payload).eq('id', id) : await supabaseClient.from('accounts').insert([payload]);
             if (!error) { closeModal(); loadData(); showToast('保存成功'); }
         }
+
         function openModal(id = null) {
             document.getElementById('accountForm').reset();
             document.getElementById('accountId').value = id || '';
