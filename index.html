@@ -3,80 +3,191 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>账号密码管理器 V5.1</title>
+    <title>云端账号密码管理器 V6.0</title>
     <script src="./mincloud.js"></script>
     <style>
-        /* 继承你原有的样式 */
-        body { font-family: sans-serif; background: #f0f4c3; padding: 20px; }
-        .accounts-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; }
-        .account-card { background: white; padding: 15px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .system-name { font-weight: bold; color: #2e7d32; border-bottom: 1px solid #eee; margin-bottom: 10px; }
-        .loading { text-align: center; padding: 50px; font-size: 1.2rem; color: #666; }
+        /* ===== 样式完全继承自您的 V3 版本 ===== */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #a8e6cf 0%, #dcedc8 50%, #f0f4c3 100%);
+            min-height: 100vh; padding: 20px; color: #333;
+        }
+        .container { max-width: 1400px; margin: 0 auto; }
+        .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 30px; color: #2e7d32; }
+        .time-search-container { display: flex; align-items: center; gap: 15px; }
+        .clock-container {
+            background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(10px);
+            border-radius: 20px; padding: 10px 20px; border: 1px solid rgba(255,255,255,0.8);
+        }
+        .time-display { font-size: 1.8rem; font-weight: bold; font-family: 'Courier New', monospace; }
+        .search-container { position: relative; }
+        .search-input {
+            padding: 8px 35px; border: 2px solid #c8e6c9; border-radius: 10px;
+            width: 200px; transition: all 0.3s;
+        }
+        .search-input:focus { width: 300px; border-color: #4caf50; outline: none; }
+
+        /* 卡片样式 */
+        .accounts-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 15px; }
+        .account-card {
+            background: rgba(255, 255, 255, 0.95); border-radius: 15px; padding: 12px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1); position: relative; transition: 0.3s;
+        }
+        .account-card.dim { opacity: 0.15; filter: grayscale(100%); pointer-events: none; }
+        .system-name {
+            font-size: 1.2rem; font-weight: bold; color: #2e7d32; padding-bottom: 8px;
+            margin-bottom: 12px; border-bottom: 2px solid #c8e6c9; position: relative; padding-right: 60px;
+        }
+        .account-item { display: flex; align-items: center; margin-bottom: 8px; gap: 10px; }
+        .item-label { font-size: 0.9rem; color: #4caf50; min-width: 40px; }
+        .item-value {
+            background: #f1f8e9; border: 2px solid #c8e6c9; border-radius: 8px;
+            padding: 6px 10px; flex: 1; font-family: 'Courier New', monospace;
+            cursor: pointer; font-size: 0.9rem; word-break: break-all; position: relative;
+        }
+        .item-value:hover { border-color: #4caf50; background: #e8f5e8; }
+        
+        /* 图标样式 */
+        .icon-group { position: absolute; right: 5px; top: 50%; transform: translateY(-50%); display: flex; gap: 8px; }
+        .icon-btn { cursor: pointer; opacity: 0.6; transition: 0.2s; display: flex; align-items: center; }
+        .icon-btn:hover { opacity: 1; transform: scale(1.2); }
+        .icon-btn svg { width: 18px; height: 18px; fill: #2e7d32; }
+
+        .toast {
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+            background: rgba(46, 125, 50, 0.9); color: white; padding: 10px 25px;
+            border-radius: 50px; display: none; z-index: 9999; box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .loading-tip { grid-column: 1/-1; text-align: center; padding: 100px; color: #2e7d32; font-size: 1.2rem; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🔐 账号管理器</h1>
-        <div id="statusInfo" style="color: #666; margin-bottom: 10px;">正在连接云端...</div>
-        <div class="accounts-grid" id="accountsGrid"></div>
+        <div class="header">
+            <h1>🔐 账号密码管理器 (云同步版)</h1>
+            <div class="time-search-container">
+                <div class="clock-container">
+                    <div class="time-display" id="timeDisplay">00:00:00</div>
+                </div>
+                <div class="search-container">
+                    <input type="text" class="search-input" id="searchInput" placeholder="搜索系统、账号...">
+                </div>
+            </div>
+        </div>
+
+        <div class="accounts-grid" id="accountsGrid">
+            <div class="loading-tip">正在安全连接知晓云数据库...</div>
+        </div>
     </div>
 
+    <div id="toast" class="toast"></div>
+
     <script>
-        // 1. 配置信息 (已根据你的截图自动填入)
+        // ======= 1. 初始化知晓云 =======
         const CLIENT_ID = 'beb23e269f45432272c6'; 
         const TABLE_NAME = 'account_list';
 
-        // 2. 初始化
         try {
-            if (typeof BaaS !== 'undefined') {
-                BaaS.init(CLIENT_ID);
-                // 强制开启跨域支持
-                BaaS._config.CORS = true; 
-            } else {
-                showError("SDK 加载失败，请检查 mincloud.js 是否已上传到 GitHub");
-            }
+            BaaS.init(CLIENT_ID);
+            BaaS._config.CORS = true; // 强制开启跨域支持
         } catch (e) {
-            showError("初始化异常: " + e.message);
+            console.error("SDK Init Error");
         }
 
-        // 3. 数据读取
-        async function loadData() {
+        // ======= 2. 核心：从云端获取数据 =======
+        async function fetchAccounts() {
             try {
                 let table = new BaaS.TableObject(TABLE_NAME);
-                // 按创建时间倒序排列
-                let res = await table.orderBy('-created_at').find();
-                renderCards(res.data.objects);
-                document.getElementById('statusInfo').textContent = "数据更新于: " + new Date().toLocaleTimeString();
+                // 解决只显示3条的问题：显式设置 limit 并取消所有过滤限制
+                let res = await table.limit(100).orderBy('-created_at').find();
+                
+                const objects = res.data.objects;
+                console.log("云端实际返回总数:", objects.length);
+                renderCards(objects);
             } catch (err) {
-                console.error("加载错误详情:", err);
-                if (err.code === 403 || err.message.includes('CORS')) {
-                    showError("【跨域拦截】请去知晓云后台-安全设置-将安全域名设为 *");
-                } else {
-                    showError("加载失败: " + (err.message || "请检查表名是否为 account_list"));
-                }
+                console.error(err);
+                document.getElementById('accountsGrid').innerHTML = `<div class="loading-tip" style="color:red">加载失败：请检查知晓云后台安全域名设置是否为 * </div>`;
             }
         }
 
-        function renderCards(objects) {
+        // ======= 3. 渲染卡片 =======
+        function renderCards(data) {
             const grid = document.getElementById('accountsGrid');
-            grid.innerHTML = objects.length ? '' : '云端暂无数据';
-            objects.forEach(item => {
+            if (data.length === 0) {
+                grid.innerHTML = '<div class="loading-tip">数据库中暂无账号信息</div>';
+                return;
+            }
+            grid.innerHTML = '';
+
+            data.forEach(item => {
                 const card = document.createElement('div');
                 card.className = 'account-card';
+                // 存储数据供搜索使用
+                card.dataset.content = `${item.system} ${item.username} ${item.password}`.toLowerCase();
+                
+                const urlHtml = item.url ? `
+                    <a href="${item.url}" target="_blank" class="icon-btn" title="访问系统">
+                        <svg viewBox="0 0 24 24"><path d="M3.9 12a5 5 0 0 1 5-5h4v2h-4a3 3 0 1 0 0 6h4v2h-4a5 5 0 0 1-5-5zm6-1h4v2h-4zm5-4h-4v2h4a3 3 0 1 1 0 6h-4v2h4a5 5 0 1 0 0-10z"/></svg>
+                    </a>` : '';
+
                 card.innerHTML = `
-                    <div class="system-name">${item.system || '未命名'}</div>
-                    <div style="font-size:0.9rem">账号: ${item.username}</div>
-                    <div style="font-size:0.9rem">密码: ${item.password}</div>
+                    <div class="system-name">
+                        <span class="name-text">${item.system}</span>
+                        <div class="icon-group">
+                            ${urlHtml}
+                            <div class="icon-btn" onclick="copyAll('${item.system}','${item.username}','${item.password}','${item.url}')" title="一键复制全部">
+                                <svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v12h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="account-item">
+                        <div class="item-label">账号:</div>
+                        <div class="item-value" onclick="copyText('${item.username}')">${item.username}</div>
+                    </div>
+                    <div class="account-item">
+                        <div class="item-label">密码:</div>
+                        <div class="item-value" onclick="copyText('${item.password}')">${item.password}</div>
+                    </div>
                 `;
                 grid.appendChild(card);
             });
         }
 
-        function showError(msg) {
-            document.getElementById('accountsGrid').innerHTML = `<div style="color:red; border:1px solid red; padding:20px;">${msg}</div>`;
+        // ======= 4. 功能交互 =======
+        function copyText(text) {
+            navigator.clipboard.writeText(text).then(() => showToast("已复制: " + text));
         }
 
-        window.onload = loadData;
+        function copyAll(s, u, p, url) {
+            const content = `系统：${s}\n账号：${u}\n密码：${p}${url ? '\n地址：'+url : ''}`;
+            navigator.clipboard.writeText(content).then(() => showToast("已复制该系统的完整信息"));
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.style.display = 'block';
+            setTimeout(() => t.style.display = 'none', 2000);
+        }
+
+        // 搜索逻辑
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            const val = e.target.value.toLowerCase().trim();
+            const cards = document.querySelectorAll('.account-card');
+            cards.forEach(card => {
+                const isMatch = card.dataset.content.includes(val);
+                card.classList.toggle('dim', val !== '' && !isMatch);
+            });
+        });
+
+        // 时钟逻辑
+        setInterval(() => {
+            document.getElementById('timeDisplay').textContent = new Date().toLocaleTimeString('zh-CN', { hour12: false });
+        }, 1000);
+
+        // 页面加载后启动
+        window.onload = fetchAccounts;
     </script>
 </body>
 </html>
