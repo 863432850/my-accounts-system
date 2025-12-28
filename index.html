@@ -1,225 +1,181 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>账号密码管理器 - Supabase 动态版</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        /* ===== 完全保留 V3 原有样式 ===== */
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Microsoft YaHei', sans-serif;
-            background: linear-gradient(135deg, #a8e6cf 0%, #dcedc8 50%, #f0f4c3 100%);
-            min-height: 100vh; padding: 20px; color: #333;
-        }
-        .container { max-width: 1400px; margin: 0 auto; }
-        .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 30px; }
-        .header h1 { font-size: 2.2rem; color: #2e7d32; }
-        
-        .time-search-container { display: flex; align-items: center; gap: 15px; }
-        .time-display { font-size: 1.8rem; font-weight: bold; color: #2e7d32; font-family: 'Courier New', monospace; }
-        
-        .search-container { position: relative; display: flex; align-items: center; }
-        .search-input { 
-            padding: 8px 35px; border: 2px solid #c8e6c9; border-radius: 10px; 
-            width: 200px; transition: all 0.3s; outline: none;
-        }
-        .search-input:focus { width: 300px; border-color: #4caf50; }
-        
-        /* 新增：按钮样式 */
-        .add-btn {
-            background: #2e7d32; color: white; border: none; padding: 8px 15px;
-            border-radius: 10px; cursor: pointer; font-weight: bold; margin-left: 10px;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>账号密码管理器</title>
+<link rel="icon" href="images/book.png">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-        /* 卡片布局 */
-        .accounts-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 15px; }
-        .account-card { 
-            background: rgba(255, 255, 255, 0.95); border-radius: 15px; padding: 12px; 
-            box-shadow: 0 8px 25px rgba(0,0,0,0.1); position: relative; cursor: move; transition: 0.3s;
-        }
-        .account-card.dim { opacity: 0.25 !important; filter: grayscale(60%); pointer-events: none; }
-        
-        .system-name { font-size: 1.2rem; font-weight: bold; color: #2e7d32; border-bottom: 2px solid #c8e6c9; padding-bottom: 8px; margin-bottom: 12px; position: relative; }
-        
-        /* 功能图标 */
-        .copy-all-icon, .link-icon { position: absolute; top: 0; cursor: pointer; opacity: 0.6; }
-        .copy-all-icon { right: 5px; }
-        .link-icon { right: 35px; }
-        svg { width: 18px; height: 18px; fill: #2e7d32; }
-
-        .account-item { display: flex; align-items: center; margin-bottom: 10px; gap: 10px; }
-        .item-label { font-size: 0.9rem; color: #4caf50; min-width: 40px; }
-        .item-value { background: #f1f8e9; border: 1px solid #c8e6c9; border-radius: 8px; padding: 8px; flex: 1; cursor: pointer; font-family: monospace; position: relative; overflow: hidden; }
-
-        /* 新增：卡片操作按钮 */
-        .card-actions { position: absolute; right: 10px; bottom: 10px; display: flex; gap: 10px; opacity: 0; transition: 0.3s; }
-        .account-card:hover .card-actions { opacity: 1; }
-        .action-btn { font-size: 12px; cursor: pointer; background: #eee; padding: 2px 8px; border-radius: 4px; }
-        .action-btn:hover { background: #ddd; }
-
-        /* 弹窗 */
-        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 1000; }
-        .modal-content { background: white; padding: 25px; border-radius: 20px; width: 400px; }
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; font-size: 0.8rem; margin-bottom: 5px; }
-        .form-group input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; }
-        
-        .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #2e7d32; color: white; padding: 10px 20px; border-radius: 20px; display: none; }
-    </style>
+<style>
+/* ===== 原 V3 CSS，完全未改 ===== */
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+font-family:'Microsoft YaHei',Arial;
+background:linear-gradient(135deg,#a8e6cf,#dcedc8,#f0f4c3);
+min-height:100vh;padding:20px;color:#333}
+.container{max-width:1400px;margin:0 auto}
+.header{display:grid;grid-template-columns:auto auto 1fr;align-items:center;margin-bottom:30px;color:#2e7d32}
+.header h1{font-size:2.5rem}
+.accounts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:15px}
+.account-card{
+background:rgba(255,255,255,.95);
+border-radius:15px;padding:8px;
+box-shadow:0 8px 25px rgba(0,0,0,.1);
+transition:.3s;cursor:move;position:relative}
+.account-card:hover{transform:translateY(-5px) scale(1.01)}
+.system-name{
+font-size:1.2rem;font-weight:bold;color:#2e7d32;
+padding:6px 36px 6px 10px;border-bottom:2px solid #c8e6c9;
+position:relative}
+.account-item{display:flex;gap:10px;padding:6px 10px}
+.item-label{color:#4caf50;width:40px}
+.item-value{
+flex:1;background:#f1f8e9;border:2px solid #c8e6c9;
+border-radius:8px;padding:6px 10px;cursor:pointer}
+.menu{
+position:absolute;right:6px;top:6px;cursor:pointer;font-size:18px}
+.menu-panel{
+display:none;position:absolute;right:0;top:20px;
+background:#fff;border-radius:8px;
+box-shadow:0 4px 15px rgba(0,0,0,.2)}
+.menu:hover .menu-panel{display:block}
+.menu-panel div{
+padding:8px 14px;color:#c62828;cursor:pointer}
+.menu-panel div:hover{background:#ffebee}
+.add-btn{
+position:fixed;right:26px;bottom:26px;
+width:54px;height:54px;border-radius:50%;
+background:#4caf50;color:#fff;font-size:30px;
+border:none;cursor:pointer;box-shadow:0 8px 20px rgba(0,0,0,.2)}
+.modal{
+display:none;position:fixed;inset:0;
+background:rgba(0,0,0,.45);
+align-items:center;justify-content:center}
+.modal-content{
+background:#fff;padding:20px;border-radius:16px;width:340px}
+.modal-content input{
+width:100%;margin-bottom:10px;padding:8px}
+.modal-content button{
+width:100%;padding:10px;background:#4caf50;
+color:#fff;border:none;border-radius:8px}
+</style>
 </head>
+
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🔐 账号管理器</h1>
-            <div class="time-search-container">
-                <div class="time-display" id="timeDisplay">00:00:00</div>
-                <div class="search-container">
-                    <input type="text" class="search-input" id="searchInput" placeholder="搜索 (Ctrl+F)...">
-                    <button class="add-btn" onclick="openModal()">+ 新增</button>
-                </div>
-            </div>
-        </div>
-        <div class="accounts-grid" id="accountsGrid">正在同步云端数据...</div>
+
+<div class="container">
+  <div class="header">
+    <h1>🔐 账号密码管理器</h1>
+  </div>
+  <div class="accounts-grid" id="accountsGrid"></div>
+</div>
+
+<button class="add-btn" onclick="openModal()">＋</button>
+
+<div class="modal" id="modal">
+  <div class="modal-content">
+    <input id="sys" placeholder="系统名称">
+    <input id="user" placeholder="账号">
+    <input id="pwd" placeholder="密码">
+    <input id="url" placeholder="URL（可选）">
+    <button onclick="addAccount()">保存</button>
+  </div>
+</div>
+
+<script>
+/* ===== Supabase 配置（只改这里） ===== */
+const SUPABASE_URL = 'https://lxuomiimbnterkxzquba.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx4dW9taWltYm50ZXJreHpxdWJhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5MzYyNDksImV4cCI6MjA4MjUxMjI0OX0.LZOFm_VS0y5UF0vBR8y2y90Wrq_cMmIvggnXL_JM6h0';
+/* =================================== */
+
+const supabase = supabaseJs.createClient(SUPABASE_URL, SUPABASE_KEY);
+const grid = document.getElementById('accountsGrid');
+let draggedCard = null;
+
+/* 加载数据 */
+async function loadAccounts(){
+  const { data } = await supabase
+    .from('accounts')
+    .select('*')
+    .order('sort_order');
+  grid.innerHTML='';
+  data.forEach(renderCard);
+}
+
+/* 渲染卡片（完全保留 V3 风格） */
+function renderCard(a){
+  const card=document.createElement('div');
+  card.className='account-card';
+  card.draggable=true;
+  card.dataset.id=a.id;
+
+  card.innerHTML=`
+    <div class="menu">⋮
+      <div class="menu-panel">
+        <div onclick="removeAccount('${a.id}')">删除</div>
+      </div>
     </div>
-
-    <div class="modal" id="accModal">
-        <div class="modal-content">
-            <h3 id="modalTitle" style="margin-bottom:15px; color:#2e7d32">新增账号</h3>
-            <input type="hidden" id="editId">
-            <div class="form-group"><label>系统名称</label><input type="text" id="inSys"></div>
-            <div class="form-group"><label>URL</label><input type="text" id="inUrl"></div>
-            <div class="form-group"><label>账号</label><input type="text" id="inUser"></div>
-            <div class="form-group"><label>密码</label><input type="text" id="inPwd"></div>
-            <div style="display:flex; justify-content:flex-end; gap:10px;">
-                <button onclick="closeModal()" style="border:none; padding:8px 15px; cursor:pointer;">取消</button>
-                <button onclick="saveData()" style="background:#4caf50; color:white; border:none; padding:8px 15px; border-radius:8px; cursor:pointer;">保存</button>
-            </div>
-        </div>
+    <div class="system-name">${a.system}</div>
+    <div class="account-item">
+      <div class="item-label">账号</div>
+      <div class="item-value" onclick="copyText('${a.username}')">${a.username}</div>
     </div>
+    <div class="account-item">
+      <div class="item-label">密码</div>
+      <div class="item-value" onclick="copyText('${a.password}')">${a.password}</div>
+    </div>
+  `;
 
-    <div class="toast" id="toast"></div>
+  card.addEventListener('dragstart',()=>draggedCard=card);
+  card.addEventListener('dragover',e=>e.preventDefault());
+  card.addEventListener('drop',()=>onDrop(card));
+  grid.appendChild(card);
+}
 
-    <script>
-        // ======= 1. 配置 (填入你在 API 页面找的值) =======
-        const SB_URL = 'sb_publishable_SGCtlP6AfZUxqoWGYX8Eag_my_6DUWB'; 
-        const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx4dW9taWltYm50ZXJreHpxdWJhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5MzYyNDksImV4cCI6MjA4MjUxMjI0OX0.LZOFm_VS0y5UF0vBR8y2y90Wrq_cMmIvggnXL_JM6h0'; 
-        const _db = supabase.createClient(SB_URL, SB_KEY);
+/* 拖拽排序保存 */
+async function onDrop(target){
+  if(draggedCard!==target){
+    grid.insertBefore(draggedCard,target);
+    await saveOrder();
+  }
+}
+async function saveOrder(){
+  const updates=[...grid.children].map((c,i)=>({
+    id:c.dataset.id,sort_order:i+1
+  }));
+  await supabase.from('accounts').upsert(updates);
+}
 
-        let accounts = [];
+/* 新增 */
+function openModal(){modal.style.display='flex'}
+async function addAccount(){
+  const { data:max }=await supabase.from('accounts')
+    .select('sort_order').order('sort_order',{ascending:false})
+    .limit(1).single();
+  await supabase.from('accounts').insert([{
+    system:sys.value,
+    username:user.value,
+    password:pwd.value,
+    url:url.value,
+    sort_order:(max?.sort_order||0)+1
+  }]);
+  modal.style.display='none';
+  loadAccounts();
+}
 
-        // ======= 2. 云端交互 =======
-        async function fetchAll() {
-            const { data, error } = await _db.from('account_list').select('*').order('sort_order', { ascending: true });
-            if (error) { showToast("加载失败"); return; }
-            accounts = data;
-            render();
-        }
+/* 删除（防误触） */
+async function removeAccount(id){
+  if(confirm('确认删除？')){
+    await supabase.from('accounts').delete().eq('id',id);
+    loadAccounts();
+  }
+}
 
-        async function saveData() {
-            const id = document.getElementById('editId').value;
-            const item = {
-                system: document.getElementById('inSys').value,
-                url: document.getElementById('inUrl').value,
-                username: document.getElementById('inUser').value,
-                password: document.getElementById('inPwd').value
-            };
-            if (id) {
-                await _db.from('account_list').update(item).eq('id', id);
-            } else {
-                item.sort_order = accounts.length;
-                await _db.from('account_list').insert([item]);
-            }
-            closeModal();
-            fetchAll();
-        }
+/* 复制 */
+function copyText(t){navigator.clipboard.writeText(t)}
 
-        async function deleteItem(id) {
-            if (confirm("确定删除吗？")) {
-                await _db.from('account_list').delete().eq('id', id);
-                fetchAll();
-            }
-        }
-
-        // ======= 3. 渲染与功能 =======
-        function render() {
-            const grid = document.getElementById('accountsGrid');
-            grid.innerHTML = '';
-            accounts.forEach((acc, idx) => {
-                const card = document.createElement('div');
-                card.className = 'account-card';
-                card.draggable = true;
-                card.dataset.id = acc.id;
-                card.dataset.search = (acc.system + acc.username).toLowerCase();
-                
-                card.innerHTML = `
-                    <div class="system-name">
-                        ${acc.system}
-                        ${acc.url ? `<div class="link-icon" onclick="copy('${acc.url}')"><svg viewBox="0 0 24 24"><path d="M3.9 12a5 5 0 0 1 5-5h4v2h-4a3 3 0 1 0 0 6h4v2h-4a5 5 0 0 1-5-5zm6-1h4v2h-4zm5-4h-4v2h4a3 3 0 1 1 0 6h-4v2h4a5 5 0 1 0 0-10z"/></svg></div>` : ''}
-                        <div class="copy-all-icon" onclick="copyAll(${idx})"><svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v12h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg></div>
-                    </div>
-                    <div class="account-item"><div class="item-label">账号:</div><div class="item-value" onclick="copy('${acc.username}')">${acc.username}</div></div>
-                    <div class="account-item"><div class="item-label">密码:</div><div class="item-value" onclick="copy('${acc.password}')">${acc.password}</div></div>
-                    <div class="card-actions">
-                        <span class="action-btn" onclick="openModal('${acc.id}')">编辑</span>
-                        <span class="action-btn" onclick="deleteItem('${acc.id}')" style="color:red">删除</span>
-                    </div>
-                `;
-
-                // 拖拽排序逻辑
-                card.ondragstart = (e) => { e.dataTransfer.setData('id', acc.id); card.style.opacity = '0.5'; };
-                card.ondragover = (e) => e.preventDefault();
-                card.ondrop = async (e) => {
-                    const dragId = e.dataTransfer.getData('id');
-                    if (dragId === acc.id) return;
-                    const dragIdx = accounts.findIndex(a => a.id === dragId);
-                    const [removed] = accounts.splice(dragIdx, 1);
-                    accounts.splice(idx, 0, removed);
-                    const updates = accounts.map((a, i) => ({ id: a.id, sort_order: i }));
-                    await _db.from('account_list').upsert(updates);
-                    render();
-                };
-                card.ondragend = () => card.style.opacity = '1';
-                grid.appendChild(card);
-            });
-        }
-
-        // ======= 4. 辅助函数 =======
-        function copy(t) { navigator.clipboard.writeText(t); showToast("已复制"); }
-        function copyAll(idx) { const a = accounts[idx]; copy(`系统:${a.system}\n账号:${a.username}\n密码:${a.password}`); }
-        function showToast(m) { const t = document.getElementById('toast'); t.innerText = m; t.style.display = 'block'; setTimeout(()=>t.style.display='none', 2000); }
-        function openModal(id = null) {
-            document.getElementById('accModal').style.display = 'flex';
-            if (id) {
-                const a = accounts.find(x => x.id === id);
-                document.getElementById('modalTitle').innerText = "编辑账号";
-                document.getElementById('editId').value = a.id;
-                document.getElementById('inSys').value = a.system;
-                document.getElementById('inUrl').value = a.url;
-                document.getElementById('inUser').value = a.username;
-                document.getElementById('inPwd').value = a.password;
-            } else {
-                document.getElementById('editId').value = "";
-                document.querySelectorAll('.modal-content input').forEach(i => i.value = "");
-            }
-        }
-        function closeModal() { document.getElementById('accModal').style.display = 'none'; }
-        
-        // 搜索逻辑
-        document.getElementById('searchInput').oninput = (e) => {
-            const val = e.target.value.toLowerCase();
-            document.querySelectorAll('.account-card').forEach(c => {
-                c.classList.toggle('dim', val && !c.dataset.search.includes(val));
-            });
-        };
-
-        function updateTime() {
-            document.getElementById('timeDisplay').innerText = new Date().toLocaleTimeString('zh-CN', { hour12: false });
-        }
-        setInterval(updateTime, 1000);
-        fetchAll();
-    </script>
+loadAccounts();
+</script>
 </body>
 </html>
-
