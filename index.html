@@ -5,8 +5,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>账号密码管理器</title>
     <link rel="icon" href="images/book.png" type="image/x-icon">
-    <!-- 引入知晓云SDK -->
-   <script src="https://sdk.minapp.com/js/v2.0.0/wechat.js"></script>
+    <!-- 修复知晓云SDK加载 -->
+    <script src="https://sdk.minapp.com/js/v2.0.0/wechat.js"></script>
+    <script>
+        // 等待知晓云SDK加载完成
+        document.addEventListener('DOMContentLoaded', function() {
+            // 延迟初始化，确保SDK加载完成
+            setTimeout(initApp, 500);
+        });
+        
+        function initApp() {
+            try {
+                // 检查SDK是否加载成功
+                if (typeof wx !== 'undefined' && wx.BaaS) {
+                    console.log('知晓云SDK加载成功');
+                    // 这里先不初始化，等后面的主代码执行
+                } else {
+                    console.error('知晓云SDK未正确加载');
+                    // 如果SDK加载失败，显示错误提示
+                    alert('知晓云SDK加载失败，请检查网络连接后刷新页面');
+                }
+            } catch (error) {
+                console.error('初始化失败:', error);
+            }
+        }
+    </script>
     <style>
         /* 命中搜索的卡片 */
         .account-card.hit {
@@ -652,6 +675,25 @@
             100% { opacity: 0; }
         }
 
+        /* 离线模式提示 */
+        .offline-mode {
+            position: fixed;
+            bottom: 100px;
+            right: 30px;
+            background: #ff9800;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            z-index: 99;
+            font-size: 12px;
+            display: none;
+        }
+
+        .offline-mode.show {
+            display: block;
+        }
+
         @media (max-width: 768px) {
             .header {
                 position: relative;
@@ -737,6 +779,11 @@
             <div></div>
         </div>
 
+        <!-- 离线模式提示 -->
+        <div class="offline-mode" id="offlineMode">
+            ⚠️ 离线模式：使用本地数据
+        </div>
+
         <!-- 加载指示器 -->
         <div class="loader" id="loader">
             正在加载数据<span class="loader-dots"><span>.</span><span>.</span><span>.</span></span>
@@ -793,11 +840,33 @@
     <div id="globalUrlTooltip" class="url-tooltip"></div>
 
     <script>
-        // 初始化知晓云
-        wx.BaaS.init('beb23e269f45432272c6');
+        // 知晓云配置
+        const ZHIXIAO_CLIENT_ID = 'beb23e269f45432272c6';
+        const ZHIXIAO_TABLE_NAME = 'account_list';
         
-        // 获取数据表
-        const AccountTable = new wx.BaaS.TableObject('account_list');
+        // 初始化知晓云SDK
+        let isZhiXiaoReady = false;
+        let AccountTable = null;
+        
+        function initZhiXiaoYun() {
+            try {
+                if (typeof wx !== 'undefined' && wx.BaaS) {
+                    wx.BaaS.init(ZHIXIAO_CLIENT_ID);
+                    AccountTable = new wx.BaaS.TableObject(ZHIXIAO_TABLE_NAME);
+                    isZhiXiaoReady = true;
+                    console.log('知晓云初始化成功');
+                    return true;
+                } else {
+                    console.warn('知晓云SDK未加载，使用离线模式');
+                    document.getElementById('offlineMode').classList.add('show');
+                    return false;
+                }
+            } catch (error) {
+                console.error('知晓云初始化失败:', error);
+                document.getElementById('offlineMode').classList.add('show');
+                return false;
+            }
+        }
         
         // 随机有趣提示消息
         const messages = [
@@ -811,6 +880,18 @@
         let accounts = [];
         let isDragging = false;
         let dragTimer = null;
+
+        // 离线模式下的默认数据（作为备份）
+        const defaultAccounts = [
+            { system: "VPN账号密码", username: "huanghx@hsit.com.cn", password: "!Aa123456", url: "" },
+            { system: "浙江生产堡垒机", username: "chenzj", password: "!Koala633633", url: "https://10.154.73.49/u-s-m-A28C72-v8/login" },
+            { system: "浙江测试阿里云", username: "szhyf_dev", password: "szhyfDev.5", url: "https://one.console.ext.yun.zjtobacco.com/ascm/login" },
+            { system: "浙江生产阿里云", username: "szhyfyy_pro", password: "A133e6c2c.e", url: "https://one.console.ext.yun.zjtobacco.com/ascm/login" },
+            { system: "浙江PDM系统", username: "G-53935", password: "zjzy-2019", url: "" },
+            { system: "Z-Library图书馆", username: "863432850@qq.com", password: "!Aa12345", url: "https://zh.z-lib.gd/" },
+            { system: "Github", username: "863432850@qq.com", password: "A133e6c2c.e", url: "https://github.com/" },
+            { system: "知晓云", username: "863432850@qq.com", password: "A133e6c2c.e", url: "https://cloud.minapp.com/dashboard/#/enterprise/38725/" }
+        ];
 
         function createLinkIcon(url) {
             const wrapper = document.createElement('div');
@@ -875,14 +956,19 @@
                         toast.textContent = '正在删除...';
                         toast.classList.add('show');
                         
-                        // 从知晓云删除
-                        await AccountTable.delete(accountId);
+                        if (isZhiXiaoReady && accountId) {
+                            // 从知晓云删除
+                            await AccountTable.delete(accountId);
+                        }
                         
                         // 从本地数组删除
                         const index = accounts.findIndex(acc => acc.id === accountId);
                         if (index !== -1) {
                             accounts.splice(index, 1);
                         }
+                        
+                        // 保存到本地存储（离线模式）
+                        saveToLocalStorage();
                         
                         // 重新渲染
                         renderAccounts();
@@ -982,7 +1068,7 @@
                 // 更新本地顺序
                 updateLocalOrder();
                 
-                // 延迟保存到云端
+                // 延迟保存
                 if (dragTimer) clearTimeout(dragTimer);
                 dragTimer = setTimeout(saveOrderToCloud, 1000);
             }
@@ -1003,10 +1089,20 @@
             
             // 按新顺序排序
             accounts.sort((a, b) => a.order - b.order);
+            
+            // 保存到本地存储
+            saveToLocalStorage();
         }
         
         // 保存顺序到云端
         async function saveOrderToCloud() {
+            if (!isZhiXiaoReady) {
+                // 离线模式，只保存到本地
+                saveToLocalStorage();
+                showToast('排序已保存（本地）');
+                return;
+            }
+            
             try {
                 // 批量更新所有账户的顺序
                 const updatePromises = accounts.map((account, index) => {
@@ -1020,7 +1116,37 @@
             } catch (error) {
                 console.error('保存排序失败:', error);
                 showToast('保存排序失败 ❌');
+                // 失败时保存到本地
+                saveToLocalStorage();
             }
+        }
+        
+        // 保存到本地存储
+        function saveToLocalStorage() {
+            try {
+                localStorage.setItem('account_manager_data', JSON.stringify({
+                    accounts: accounts,
+                    timestamp: new Date().getTime()
+                }));
+            } catch (error) {
+                console.error('保存到本地存储失败:', error);
+            }
+        }
+        
+        // 从本地存储加载
+        function loadFromLocalStorage() {
+            try {
+                const savedData = localStorage.getItem('account_manager_data');
+                if (savedData) {
+                    const data = JSON.parse(savedData);
+                    if (data.accounts && Array.isArray(data.accounts)) {
+                        return data.accounts;
+                    }
+                }
+            } catch (error) {
+                console.error('从本地存储加载失败:', error);
+            }
+            return null;
         }
 
         function createCopyAllIcon() {
@@ -1067,26 +1193,73 @@
             try {
                 document.getElementById('loader').classList.add('show');
                 
-                // 查询数据，按order字段升序排序
-                const query = new wx.BaaS.Query();
-                const orderBy = ['order'];
-                const result = await AccountTable.setQuery(query).orderBy(orderBy).find();
-                
-                accounts = result.data.objects.map(item => ({
-                    id: item.id,
-                    system: item.system,
-                    username: item.username,
-                    password: item.password,
-                    url: item.url || '',
-                    order: item.order || 0
-                }));
+                if (isZhiXiaoReady) {
+                    // 在线模式：从知晓云获取
+                    console.log('从知晓云获取数据...');
+                    
+                    // 查询数据，按order字段升序排序
+                    const query = new wx.BaaS.Query();
+                    const orderBy = ['order'];
+                    const result = await AccountTable.setQuery(query).orderBy(orderBy).find();
+                    
+                    accounts = result.data.objects.map(item => ({
+                        id: item.id,
+                        system: item.system,
+                        username: item.username,
+                        password: item.password,
+                        url: item.url || '',
+                        order: item.order || 0,
+                        created_at: item.created_at,
+                        updated_at: item.updated_at
+                    }));
+                    
+                    console.log('从知晓云获取到', accounts.length, '条数据');
+                    
+                    // 保存到本地存储作为备份
+                    saveToLocalStorage();
+                } else {
+                    // 离线模式：从本地存储或默认数据获取
+                    console.log('离线模式：从本地存储获取数据');
+                    const localData = loadFromLocalStorage();
+                    
+                    if (localData && localData.length > 0) {
+                        accounts = localData;
+                        console.log('从本地存储获取到', accounts.length, '条数据');
+                    } else {
+                        // 使用默认数据
+                        accounts = defaultAccounts.map((acc, index) => ({
+                            id: 'local_' + index,
+                            ...acc,
+                            order: index
+                        }));
+                        console.log('使用默认数据，共', accounts.length, '条');
+                    }
+                }
                 
                 renderAccounts();
                 document.getElementById('loader').classList.remove('show');
             } catch (error) {
                 console.error('获取数据失败:', error);
+                
+                // 尝试从本地存储恢复
+                const localData = loadFromLocalStorage();
+                if (localData && localData.length > 0) {
+                    accounts = localData;
+                    console.log('从本地存储恢复数据，共', accounts.length, '条');
+                    renderAccounts();
+                } else {
+                    // 使用默认数据
+                    accounts = defaultAccounts.map((acc, index) => ({
+                        id: 'local_' + index,
+                        ...acc,
+                        order: index
+                    }));
+                    console.log('使用默认数据，共', accounts.length, '条');
+                    renderAccounts();
+                }
+                
                 document.getElementById('loader').classList.remove('show');
-                showToast('加载数据失败 ❌');
+                showToast('加载数据失败，使用本地数据 ❌');
             }
         }
 
@@ -1094,6 +1267,9 @@
         function renderAccounts() {
             const grid = document.getElementById('accountsGrid');
             grid.innerHTML = '';
+            
+            // 按order排序
+            accounts.sort((a, b) => (a.order || 0) - (b.order || 0));
             
             accounts.forEach(account => {
                 const card = document.createElement('div');
@@ -1234,7 +1410,7 @@
                 
                 // 重新添加删除按钮
                 const deleteIcon = createDeleteIcon(card.dataset.id, system);
-                systemNameElement.appendChild(deleteIcon);
+                systemNameDiv.appendChild(deleteIcon);
 
                 // 账号 & 密码
                 valueEls[0].innerHTML = (searchQuery
@@ -1338,30 +1514,52 @@
                 
                 if (id) {
                     // 更新现有账号
-                    const record = AccountTable.getWithoutData(id);
-                    record.set(accountData);
-                    await record.update();
-                    
-                    // 更新本地数据
-                    const index = accounts.findIndex(acc => acc.id === id);
-                    if (index !== -1) {
-                        accounts[index] = { ...accounts[index], ...accountData };
+                    if (isZhiXiaoReady && id.startsWith('record_')) {
+                        const realId = id.replace('record_', '');
+                        const record = AccountTable.getWithoutData(realId);
+                        record.set(accountData);
+                        await record.update();
+                        
+                        // 更新本地数据
+                        const index = accounts.findIndex(acc => acc.id === id);
+                        if (index !== -1) {
+                            accounts[index] = { ...accounts[index], ...accountData };
+                        }
+                    } else {
+                        // 本地数据更新
+                        const index = accounts.findIndex(acc => acc.id === id);
+                        if (index !== -1) {
+                            accounts[index] = { ...accounts[index], ...accountData };
+                        }
                     }
                     
                     showToast('更新成功 ✅');
                 } else {
                     // 新增账号
-                    const record = AccountTable.create();
-                    const result = await record.set(accountData).save();
-                    
-                    // 添加到本地数据
-                    accounts.push({
-                        id: result.data.id,
-                        ...accountData
-                    });
+                    if (isZhiXiaoReady) {
+                        // 保存到知晓云
+                        const record = AccountTable.create();
+                        const result = await record.set(accountData).save();
+                        
+                        // 添加到本地数据
+                        accounts.push({
+                            id: 'record_' + result.data.id,
+                            ...accountData
+                        });
+                    } else {
+                        // 离线模式：保存到本地
+                        const newId = 'local_' + Date.now();
+                        accounts.push({
+                            id: newId,
+                            ...accountData
+                        });
+                    }
                     
                     showToast('新增成功 ✅');
                 }
+                
+                // 保存到本地存储
+                saveToLocalStorage();
                 
                 closeModal();
                 renderAccounts();
@@ -1423,9 +1621,13 @@
             }
         });
 
-        document.addEventListener('DOMContentLoaded', () => {
+        // 主初始化函数
+        function mainInit() {
             updateTime();
             setInterval(updateTime, 1000);
+            
+            // 初始化知晓云
+            initZhiXiaoYun();
             
             // 从知晓云获取数据
             fetchAccounts();
@@ -1465,8 +1667,10 @@
                     closeModal();
                 }
             });
-        });
+        }
+
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', mainInit);
     </script>
 </body>
 </html>
-
