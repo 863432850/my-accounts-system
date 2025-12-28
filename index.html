@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>账号密码管理器 V4.0 (Cloud)</title>
+    <script src="./mincloud.js"></script>
+    <style>
+        /* 保留您 V3 版本的所有美化样式 */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #a8e6cf 0%, #dcedc8 50%, #f0f4c3 100%);
+            min-height: 100vh; padding: 20px; color: #333;
+        }
+        .container { max-width: 1400px; margin: 0 auto; }
+        .header { display: grid; grid-template-columns: auto auto 1fr; align-items: center; margin-bottom: 30px; color: #2e7d32; }
+        .time-search-container { display: flex; align-items: center; gap: 10px; margin-left: 140px; }
+        .clock-container { background: rgba(255,255,255,0.6); padding: 10px 20px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.8); }
+        .time-display { font-size: 1.8rem; font-weight: bold; font-family: 'Courier New', monospace; }
+        
+        /* 搜索框样式 */
+        .search-container { position: relative; margin-left: 10px; }
+        .search-input { padding: 8px 35px; border: 2px solid #c8e6c9; border-radius: 10px; width: 180px; outline: none; }
+        
+        /* 管理按钮 */
+        .admin-btns { display: flex; gap: 8px; margin-left: 10px; }
+        .btn { padding: 8px 15px; border-radius: 10px; border: none; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .btn-add { background: #4caf50; color: white; }
+        .btn-save { background: #2196f3; color: white; display: none; }
+
+        /* 卡片网格 */
+        .accounts-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 15px; }
+        .account-card {
+            background: rgba(255,255,255,0.95); border-radius: 15px; padding: 10px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1); position: relative; cursor: move; transition: 0.3s;
+        }
+        .account-card:hover { transform: translateY(-5px); }
+        .account-card.dim { opacity: 0.2; pointer-events: none; }
+        
+        .system-name {
+            font-size: 1.2rem; font-weight: bold; color: #2e7d32; border-bottom: 2px solid #c8e6c9;
+            padding: 5px 10px; margin-bottom: 10px; display: flex; justify-content: space-between;
+        }
+
+        .account-item { display: flex; align-items: center; margin-bottom: 8px; padding: 0 10px; gap: 10px; }
+        .item-label { font-size: 0.9rem; color: #4caf50; min-width: 40px; }
+        .item-value {
+            background: #f1f8e9; border: 2px solid #c8e6c9; border-radius: 8px; padding: 6px 10px;
+            flex: 1; font-family: 'Courier New', monospace; cursor: pointer; font-size: 0.9rem;
+        }
+
+        /* 浮动删除按钮 */
+        .delete-btn {
+            position: absolute; top: -8px; left: -8px; width: 22px; height: 22px;
+            background: #ff5252; color: white; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; font-size: 12px;
+            cursor: pointer; opacity: 0; transition: 0.2s; z-index: 10;
+        }
+        .account-card:hover .delete-btn { opacity: 1; }
+
+        /* 弹窗样式 */
+        .modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 1000;
+        }
+        .modal-content { background: white; padding: 20px; border-radius: 15px; width: 350px; }
+        .modal-content input { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 8px; }
+        
+        .toast {
+            position: fixed; top: 20px; right: 20px; background: #4caf50; color: white;
+            padding: 10px 20px; border-radius: 8px; display: none; z-index: 2000;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔐 账号管理器</h1>
+            <div class="time-search-container">
+                <div class="clock-container">
+                    <div id="timeDisplay" class="time-display">00:00:00</div>
+                </div>
+                <div class="search-container">
+                    <input type="text" id="searchInput" class="search-input" placeholder="请搜索...">
+                </div>
+                <div class="admin-btns">
+                    <button class="btn btn-add" onclick="openModal()">+ 新增</button>
+                    <button class="btn btn-save" id="saveOrderBtn" onclick="saveNewOrder()">💾 保存排序</button>
+                </div>
+            </div>
+        </div>
+        <div class="accounts-grid" id="accountsGrid"></div>
+    </div>
+
+    <div class="modal" id="addModal">
+        <div class="modal-content">
+            <h3 style="margin-bottom:15px; color:#2e7d32">新增账号记录</h3>
+            <input type="text" id="inSys" placeholder="系统名称 (必填)">
+            <input type="text" id="inUser" placeholder="账号">
+            <input type="text" id="inPwd" placeholder="密码">
+            <input type="text" id="inUrl" placeholder="网址 (可选)">
+            <button class="btn btn-add" style="width:100%" onclick="saveToCloud()">保存到云端</button>
+            <button class="btn" style="width:100%; margin-top:5px; background:#eee" onclick="closeModal()">取消</button>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script>
+        // ======= 配置区 =======
+        const CLIENT_ID = 'beb23e269f45432272c6'; // ⬅️ 请在此处填写
+        const TABLE_NAME = 'account_list';
+
+        // 初始化
+        if (typeof BaaS !== 'undefined') {
+            window.BaaS = window.BaaS || {};
+// 强制声明这是一个 Web 环境请求
+BaaS._config = {
+  CLIENT_ID: 'beb23e269f45432272c6', // 从你截图看到的 ID
+  API_HOST: 'https://beb23e269f45432272c6.myminapp.com',
+  CORS: true 
+};
+			BaaS.init(CLIENT_ID);
+			BaaS._config.CORS = true;
+        } else {
+            alert("SDK加载失败，请确认 mincloud.js 在当前目录下");
+        }
+
+        let draggedCard = null;
+
+        // 加载云端数据
+        async function fetchAccounts() {
+            try {
+                let table = new BaaS.TableObject(TABLE_NAME);
+                // 按 order 升序，created_at 降序
+                let res = await table.orderBy(['order', '-created_at']).find();
+                render(res.data.objects);
+            } catch (err) {
+                showToast("获取数据失败，请检查配置");
+            }
+        }
+
+        function render(data) {
+            const grid = document.getElementById('accountsGrid');
+            grid.innerHTML = '';
+            data.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'account-card';
+                card.draggable = true;
+                card.dataset.id = item.id;
+                card.innerHTML = `
+                    <div class="delete-btn" onclick="deleteAcc('${item.id}', '${item.system}')">×</div>
+                    <div class="system-name">${item.system}</div>
+                    <div class="account-item">
+                        <div class="item-label">账号:</div>
+                        <div class="item-value" onclick="copyText('${item.username}')">${item.username}</div>
+                    </div>
+                    <div class="account-item">
+                        <div class="item-label">密码:</div>
+                        <div class="item-value" onclick="copyText('${item.password}')">${item.password}</div>
+                    </div>
+                `;
+                
+                // 拖拽排序逻辑
+                card.ondragstart = () => { draggedCard = card; card.style.opacity = '0.5'; };
+                card.ondragend = () => { card.style.opacity = '1'; draggedCard = null; };
+                card.ondragover = (e) => e.preventDefault();
+                card.ondrop = function() {
+                    if (this !== draggedCard) {
+                        const children = Array.from(grid.children);
+                        if (children.indexOf(draggedCard) < children.indexOf(this)) grid.insertBefore(draggedCard, this.nextSibling);
+                        else grid.insertBefore(draggedCard, this);
+                        document.getElementById('saveOrderBtn').style.display = 'block';
+                    }
+                };
+                grid.appendChild(card);
+            });
+        }
+
+        // 保存到云端
+        async function saveToCloud() {
+            const sys = document.getElementById('inSys').value;
+            const user = document.getElementById('inUser').value;
+            const pwd = document.getElementById('inPwd').value;
+            const url = document.getElementById('inUrl').value;
+
+            if(!sys) return alert("系统名不能为空");
+
+            try {
+                let table = new BaaS.TableObject(TABLE_NAME);
+                let record = table.create();
+                await record.set({ system: sys, username: user, password: pwd, url: url, order: 0 }).save();
+                showToast("保存成功！");
+                closeModal();
+                fetchAccounts();
+            } catch (err) { alert("云端保存失败"); }
+        }
+
+        // 删除
+        async function deleteAcc(id, name) {
+            if(!confirm(`确定删除 ${name} 吗？`)) return;
+            try {
+                let table = new BaaS.TableObject(TABLE_NAME);
+                await table.delete(id);
+                fetchAccounts();
+            } catch (err) { alert("删除失败"); }
+        }
+
+        // 保存排序
+        async function saveNewOrder() {
+            const table = new BaaS.TableObject(TABLE_NAME);
+            const cards = Array.from(document.querySelectorAll('.account-card'));
+            showToast("正在更新排序...");
+            for(let i=0; i<cards.length; i++) {
+                let record = table.getWithoutData(cards[i].dataset.id);
+                record.set('order', i);
+                await record.update();
+            }
+            document.getElementById('saveOrderBtn').style.display = 'none';
+            showToast("排序已永久保存");
+        }
+
+        // 搜索
+        document.getElementById('searchInput').oninput = function() {
+            const val = this.value.toLowerCase();
+            document.querySelectorAll('.account-card').forEach(card => {
+                const isMatch = card.innerText.toLowerCase().includes(val);
+                card.classList.toggle('dim', val && !isMatch);
+            });
+        };
+
+        function copyText(txt) {
+            navigator.clipboard.writeText(txt);
+            showToast("已复制到剪贴板");
+        }
+
+        function showToast(m) {
+            const t = document.getElementById('toast');
+            t.textContent = m; t.style.display = 'block';
+            setTimeout(() => t.style.display = 'none', 2000);
+        }
+
+        function openModal() { document.getElementById('addModal').style.display = 'flex'; }
+        function closeModal() { document.getElementById('addModal').style.display = 'none'; }
+        
+        setInterval(() => {
+            document.getElementById('timeDisplay').textContent = new Date().toLocaleTimeString();
+        }, 1000);
+
+        // 初始加载
+        fetchAccounts();
+    </script>
+</body>
+</html>
