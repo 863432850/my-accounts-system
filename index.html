@@ -793,12 +793,14 @@
     <!-- 引入 Supabase 客户端库 -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
+        // 修复：移除重复的 const supabase 声明，只使用一个全局变量
         // Supabase 配置
         const SUPABASE_URL = 'https://lxuomiimbnterkxzquba.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx4dW9taWltYm50ZXJreHpxdWJhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5MzYyNDksImV4cCI6MjA4MjUxMjI0OX0.LZOFm_VS0y5UF0vBR8y2y90Wrq_cMmIvggnXL_JM6h0';
         
-        // 创建 Supabase 客户端
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        // 创建 Supabase 客户端 - 修复：正确的初始化方式
+        const { createClient } = window.supabase;
+        const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
         // 全局变量
         let accounts = [];
@@ -877,9 +879,13 @@
                     .select('*')
                     .order('sort_order', { ascending: true });
                 
-                if (error) throw error;
+                if (error) {
+                    console.error('Supabase错误:', error);
+                    throw error;
+                }
                 
                 accounts = data || [];
+                console.log('加载到的账户数据:', accounts); // 调试信息
                 generateAccountCards();
                 showToast('加载完成 ✅');
             } catch (error) {
@@ -892,6 +898,8 @@
         function generateAccountCards() {
             const grid = document.getElementById('accountsGrid');
             grid.innerHTML = '';
+            
+            console.log('生成卡片，账户数量:', accounts.length); // 调试信息
             
             accounts.forEach((account, index) => {
                 const card = document.createElement('div');
