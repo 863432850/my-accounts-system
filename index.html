@@ -7,24 +7,24 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔐</text></svg>">
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <style>
-        /* 1. 基础风格保持 */
+        /* ================= 基础风格保持 ================= */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: 'Microsoft YaHei', sans-serif;
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
             background: linear-gradient(135deg, #a8e6cf 0%, #dcedc8 50%, #f0f4c3 100%);
             min-height: 100vh; padding: 20px; color: #333;
         }
         .container { max-width: 1400px; margin: 0 auto; }
         
+        /* 顶部 header 保持不变 */
         .header { display: grid; grid-template-columns: auto auto 1fr; align-items: center; margin-bottom: 30px; color: #2e7d32; }
         .header h1 { font-size: 2.5rem; text-shadow: 1px 1px 2px rgba(0,0,0,0.1); margin-right: 20px; }
         .time-search-container { display: flex; align-items: center; gap: 15px; margin-left: 40px; }
-        
         .clock-container { background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(10px); border-radius: 20px; padding: 10px 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid rgba(255,255,255,0.8); }
         .time-display { font-size: 1.8rem; font-weight: bold; color: #2e7d32; font-family: 'Courier New', monospace; }
         .date-display { display: flex; justify-content: center; align-items: center; gap: 20px; font-size: 1rem; color: #388e3c; }
 
-        /* 2. 固定搜索框 */
+        /* 搜索框风格 */
         .search-container { position: relative; display: flex; align-items: center; }
         .search-icon-fixed { position: absolute; left: 10px; width: 16px; height: 16px; color: #4caf50; pointer-events: none; }
         .search-input {
@@ -34,81 +34,92 @@
         .search-input:focus { outline: none; border-color: #4caf50; }
         .clear-button { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: #ff6b6b; border: none; color: white; cursor: pointer; font-size: 10px; width: 16px; height: 16px; display: none; align-items: center; justify-content: center; border-radius: 50%; }
 
-        /* 3. 卡片效果：悬浮边框+阴影 */
+        /* 卡片展示保持 */
         .accounts-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 15px; margin-top: 20px; }
         .account-card { 
             background: rgba(255, 255, 255, 0.95); border-radius: 15px; padding: 12px; 
             box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1.5px solid transparent; 
             position: relative; transition: all 0.3s ease; overflow: hidden;
-            cursor: default;
         }
-        /* 正在被拖动的卡片样式 */
+        .account-card:hover { border-color: #81c784; box-shadow: 0 8px 25px rgba(46, 125, 50, 0.15); background: #ffffff; }
         .sortable-ghost { opacity: 0.4; border: 2px dashed #4caf50; }
-        
-        .account-card:hover { 
-            border-color: #81c784; 
-            box-shadow: 0 8px 25px rgba(46, 125, 50, 0.15);
-            background: #ffffff;
-        }
-        .account-card.dim { opacity: 0.3; filter: grayscale(50%); }
-        .highlight { background-color: #fff176; color: #d32f2f; font-weight: bold; border-radius: 2px; }
-
-        /* 4. 账号密码框悬浮特效 */
-        .system-name { 
-            font-size: 1.2rem; font-weight: bold; color: #2e7d32; margin-bottom: 10px; 
-            padding: 0 115px 8px 10px; border-bottom: 2px solid #c8e6c9; position: relative;
-            cursor: grab; /* 标题作为拖动手柄 */
-        }
-        .system-name:active { cursor: grabbing; }
-
+        .system-name { font-size: 1.2rem; font-weight: bold; color: #2e7d32; margin-bottom: 10px; padding: 0 115px 8px 10px; border-bottom: 2px solid #c8e6c9; position: relative; cursor: grab; }
         .account-item { display: flex; align-items: center; margin-top: 8px; gap: 10px; padding: 0 10px; }
         .item-label { font-size: 0.9rem; color: #4caf50; font-weight: 500; width: 40px; }
-        .item-value { 
-            background: #f1f8e9; border: 2px solid #e8f5e9; border-radius: 8px; 
-            padding: 6px 10px; cursor: pointer; flex: 1; font-family: 'Courier New', monospace; 
-            font-size: 0.9rem; transition: 0.2s; position: relative;
-        }
-        .item-value:hover { border-color: #a5d6a7; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .item-value { background: #f1f8e9; border: 2px solid #e8f5e9; border-radius: 8px; padding: 6px 10px; cursor: pointer; flex: 1; font-family: 'Courier New', monospace; font-size: 0.9rem; transition: 0.2s; }
+        .item-value:hover { border-color: #a5d6a7; background: #fff; }
 
-        /* 5. 图标与 Tips */
+        /* ================= 新增/编辑弹窗（重点优化） ================= */
+        .modal-overlay { 
+            position: fixed; inset: 0; 
+            background: rgba(46, 125, 50, 0.15); 
+            backdrop-filter: blur(10px); /* 磨砂玻璃效果 */
+            display: none; justify-content: center; align-items: center; 
+            z-index: 2000; transition: 0.3s;
+        }
+        .modal-overlay.show { display: flex; animation: fadeIn 0.3s ease-out; }
+        
+        .modal { 
+            background: #ffffff; padding: 40px; border-radius: 28px; width: 480px; 
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+            position: relative; border: 1px solid rgba(255,255,255,0.8);
+        }
+        .modal-header { margin-bottom: 30px; text-align: left; }
+        .modal-title { font-size: 1.8rem; color: #1b5e20; font-weight: 800; letter-spacing: -0.5px; }
+        .modal-subtitle { font-size: 0.9rem; color: #81c784; margin-top: 5px; }
+
+        .form-group { margin-bottom: 20px; position: relative; }
+        .form-group label { 
+            display: block; font-size: 0.85rem; font-weight: 700; color: #2e7d32; 
+            margin-bottom: 8px; margin-left: 4px; 
+        }
+        /* 必填标识样式 */
+        .required::after { content: ' *'; color: #ff5252; margin-left: 4px; font-size: 1.1rem; }
+
+        .input-wrapper { position: relative; }
+        .input-wrapper::before {
+            content: ''; position: absolute; left: 0; top: 15%; height: 70%; width: 4px;
+            background: #c8e6c9; border-radius: 0 4px 4px 0; transition: 0.3s;
+        }
+
+        .form-group input { 
+            width: 100%; padding: 14px 16px 14px 20px; 
+            border: 1px solid #edf2f7; background: #f8fafc;
+            border-radius: 14px; font-size: 1rem; outline: none; transition: 0.3s;
+            color: #334155;
+        }
+        .form-group input:focus { 
+            background: #fff; border-color: #4caf50; 
+            box-shadow: 0 10px 15px -3px rgba(76, 175, 80, 0.1); 
+        }
+        /* 聚焦时装饰条变色 */
+        .form-group input:focus + .input-wrapper::before,
+        .form-group input:focus ~ .input-wrapper::before { background: #4caf50; }
+
+        .modal-footer { display: flex; gap: 15px; margin-top: 35px; }
+        .modal-btn { 
+            flex: 1; padding: 14px; border-radius: 14px; border: none; 
+            font-size: 1rem; font-weight: 700; cursor: pointer; transition: 0.3s; 
+        }
+        .btn-cancel { background: #f1f5f9; color: #64748b; }
+        .btn-cancel:hover { background: #e2e8f0; color: #1e293b; }
+        .btn-save { 
+            background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%); 
+            color: white; box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+        }
+        .btn-save:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(76, 175, 80, 0.4); }
+
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+
+        /* ================= 其他原有组件 ================= */
         .card-icon { position: absolute; top: 50%; transform: translateY(-50%); cursor: pointer; opacity: 0.6; transition: 0.2s; }
         .card-icon:hover { opacity: 1; transform: translateY(-50%) scale(1.1); }
-        .copy-all-icon { right: 8px; }
-        .delete-icon   { right: 34px; }
-        .edit-icon     { right: 60px; }
-        .link-icon     { right: 86px; color: #2196f3; }
-
-        .url-tooltip {
-            position: fixed; background: rgba(33, 33, 33, 0.9); color: #fff; padding: 6px 12px;
-            border-radius: 6px; font-size: 12px; opacity: 0; pointer-events: none;
-            transition: opacity 0.2s; z-index: 10000; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-            white-space: nowrap;
-        }
-
-        /* 删除确认条 */
-        .delete-bar {
-            position: absolute; bottom: -50px; left: 0; width: 100%; height: 45px;
-            background: #ffebee; border-top: 1px solid #ffcdd2;
-            display: flex; align-items: center; justify-content: space-between; padding: 0 15px;
-            transition: 0.3s ease; z-index: 10;
-        }
+        .copy-all-icon { right: 8px; } .delete-icon { right: 34px; } .edit-icon { right: 60px; } .link-icon { right: 86px; color: #2196f3; }
+        .url-tooltip { position: fixed; background: rgba(33, 33, 33, 0.9); color: #fff; padding: 6px 12px; border-radius: 6px; font-size: 12px; opacity: 0; pointer-events: none; transition: 0.2s; z-index: 10000; }
+        .delete-bar { position: absolute; bottom: -50px; left: 0; width: 100%; height: 45px; background: #ffebee; border-top: 1px solid #ffcdd2; display: flex; align-items: center; justify-content: space-between; padding: 0 15px; transition: 0.3s; z-index: 10; }
         .delete-bar.active { bottom: 0; }
         .mini-btn { padding: 4px 10px; border: none; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold; }
-        .btn-confirm { background: #f44336; color: white; }
-
-        .add-btn { 
-            position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; 
-            border-radius: 50%; background: #4caf50; color: white; border: none; 
-            cursor: pointer; box-shadow: 0 4px 15px rgba(76,175,80,0.3); 
-            display: flex; align-items: center; justify-content: center; transition: 0.4s; z-index: 999;
-        }
-        .add-btn svg { width: 30px; height: 30px; fill: white; transition: 0.4s; }
-        .add-btn:hover { transform: scale(1.1); background: #2e7d32; }
-        .add-btn:hover svg { transform: rotate(90deg); }
-
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(2px); }
-        .modal-overlay.show { display: flex; }
-        .modal { background: white; padding: 30px; border-radius: 20px; width: 400px; }
+        .add-btn { position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; border-radius: 50%; background: #4caf50; color: white; border: none; cursor: pointer; box-shadow: 0 4px 15px rgba(76,175,80,0.3); display: flex; align-items: center; justify-content: center; z-index: 999; }
         .toast { position: fixed; top: 20px; right: 20px; background: #333; color: white; padding: 10px 20px; border-radius: 8px; transform: translateX(200%); transition: 0.3s; z-index: 10001; }
         .toast.show { transform: translateX(0); }
     </style>
@@ -137,19 +148,53 @@
 
     <div class="modal-overlay" id="modalOverlay">
         <div class="modal">
-            <h2 id="modalTitle" style="color:#2e7d32; text-align:center; margin-bottom:20px;">新增账号</h2>
+            <div class="modal-header">
+                <div class="modal-title" id="modalTitle">新增账号</div>
+                <div class="modal-subtitle">请填写系统平台详细登录信息</div>
+            </div>
             <form id="accountForm">
                 <input type="hidden" id="accountId">
-                <div style="margin-bottom:15px;"><label>系统名称</label><input type="text" id="system" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:8px;" required></div>
-                <div style="margin-bottom:15px;"><label>登录账号</label><input type="text" id="username" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:8px;" required></div>
-                <div style="margin-bottom:15px;"><label>登录密码</label><input type="text" id="password" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:8px;" required></div>
-                <div style="margin-bottom:20px;"><label>地址(URL)</label><input type="text" id="url" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:8px;"></div>
-                <div style="display:flex; gap:10px;"><button type="button" onclick="closeModal()" style="flex:1; padding:10px; border:none; border-radius:8px; cursor:pointer;">取消</button><button type="submit" style="flex:1; padding:10px; background:#4caf50; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold;">保存</button></div>
+                
+                <div class="form-group">
+                    <label class="required">系统名称</label>
+                    <div class="input-wrapper">
+                        <input type="text" id="system" placeholder="例如：阿里云、GitHub" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="required">登录账号</label>
+                    <div class="input-wrapper">
+                        <input type="text" id="username" placeholder="手机号 / 邮箱 / 用户名" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="required">登录密码</label>
+                    <div class="input-wrapper">
+                        <input type="text" id="password" placeholder="请输入访问密码" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>访问地址 (URL)</label>
+                    <div class="input-wrapper">
+                        <input type="text" id="url" placeholder="https://example.com">
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="modal-btn btn-cancel" onclick="closeModal()">取消</button>
+                    <button type="submit" class="modal-btn btn-save">立即保存</button>
+                </div>
             </form>
         </div>
     </div>
 
-    <button class="add-btn" id="addBtn"><svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg></button>
+    <button class="add-btn" id="addBtn">
+        <svg viewBox="0 0 24 24" width="30" height="30" fill="white"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+    </button>
+    
     <div id="globalTooltip" class="url-tooltip"></div>
     <div class="toast" id="toast"></div>
 
@@ -165,33 +210,25 @@
             updateTime(); setInterval(updateTime, 1000);
             loadData();
             bindEvents();
-            initDraggable(); // 初始化拖拽
+            initDraggable();
         });
 
-        // 1. 初始化拖拽功能
         function initDraggable() {
             const el = document.getElementById('accountsGrid');
             Sortable.create(el, {
-                animation: 150,
-                handle: '.system-name', // 只有点击标题才能拖动
-                ghostClass: 'sortable-ghost',
+                animation: 150, handle: '.system-name',
                 onEnd: async function () {
                     const cardEls = Array.from(el.querySelectorAll('.account-card'));
-                    const updates = cardEls.map((card, index) => {
-                        return supabaseClient
-                            .from('accounts')
-                            .update({ sort_order: index })
-                            .eq('id', card.dataset.id);
-                    });
-                    
+                    const updates = cardEls.map((card, index) => 
+                        supabaseClient.from('accounts').update({ sort_order: index }).eq('id', card.dataset.id)
+                    );
                     await Promise.all(updates);
-                    showToast('顺序已同步');
+                    showToast('顺序已永久保存');
                 }
             });
         }
 
         async function loadData() {
-            // 严格按 sort_order 排序
             const { data } = await supabaseClient.from('accounts').select('*').order('sort_order', { ascending: true });
             accounts = data || [];
             render();
@@ -206,12 +243,12 @@
                 const isMatch = acc.system.toLowerCase().includes(lowKey) || acc.username.toLowerCase().includes(lowKey);
                 const card = document.createElement('div');
                 card.className = `account-card ${keyword && !isMatch ? 'dim' : ''}`;
-                card.dataset.id = acc.id; // 存入 ID 供拖拽排序使用
+                card.dataset.id = acc.id;
 
                 const hl = (t) => {
                     if(!keyword) return t;
                     const re = new RegExp(`(${keyword})`, 'gi');
-                    return t.replace(re, '<span class="highlight">$1</span>');
+                    return t.replace(re, '<span style="background:#fff176; color:#d32f2f; font-weight:bold;">$1</span>');
                 };
 
                 card.innerHTML = `
@@ -231,10 +268,10 @@
                         <div class="item-value" onclick="copyText('${acc.password}', '密码')">${acc.password}</div>
                     </div>
                     <div class="delete-bar">
-                        <span style="font-size:12px; color:#c62828;">确认删除该项？</span>
+                        <span style="font-size:12px; color:#c62828; font-weight:bold;">确认删除此记录？</span>
                         <div style="display:flex; gap:8px;">
                             <button class="mini-btn" onclick="toggleDelBar(this, false)">取消</button>
-                            <button class="mini-btn btn-confirm" onclick="doDelete('${acc.id}')">确定</button>
+                            <button class="mini-btn" style="background:#f44336; color:white;" onclick="doDelete('${acc.id}')">确定</button>
                         </div>
                     </div>
                 `;
@@ -252,19 +289,17 @@
         function showTooltip(e, text) {
             const tip = document.getElementById('globalTooltip');
             tip.innerText = text; tip.style.opacity = '1';
-            let x = e.clientX, y = e.clientY - 35;
-            tip.style.left = x + 'px'; tip.style.top = y + 'px';
+            tip.style.left = e.clientX + 'px'; tip.style.top = (e.clientY - 35) + 'px';
         }
         function hideTooltip() { document.getElementById('globalTooltip').style.opacity = '0'; }
 
         function toggleDelBar(el, show) {
-            const bar = el.closest('.account-card').querySelector('.delete-bar');
-            bar.classList.toggle('active', show);
+            el.closest('.account-card').querySelector('.delete-bar').classList.toggle('active', show);
         }
 
         async function doDelete(id) {
             await supabaseClient.from('accounts').delete().eq('id', id);
-            showToast('已删除'); loadData();
+            showToast('已安全删除'); loadData();
         }
 
         function bindEvents() {
@@ -287,7 +322,7 @@
                 password: document.getElementById('password').value,
                 url: document.getElementById('url').value
             };
-            if(!id) payload.sort_order = accounts.length; // 新增时排在最后
+            if(!id) payload.sort_order = accounts.length;
 
             const { error } = id ? await supabaseClient.from('accounts').update(payload).eq('id', id) : await supabaseClient.from('accounts').insert([payload]);
             if (!error) { closeModal(); loadData(); showToast('保存成功'); }
