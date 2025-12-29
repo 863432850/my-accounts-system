@@ -28,7 +28,7 @@
         .search-icon-fixed { position: absolute; left: 10px; width: 16px; height: 16px; color: #4caf50; pointer-events: none; }
         .search-input {
             padding: 6px 35px 6px 32px; border: 2px solid #c8e6c9; border-radius: 10px;
-            font-size: 0.9rem; width: 250px; height: 37px; transition: 0.3s; background: rgba(255,255,255,0.95);
+            font-size: 0.9rem; width: 200px; height: 37px; transition: 0.3s; background: rgba(255,255,255,0.95);
         }
         .search-input:focus { outline: none; border-color: #4caf50; }
         .clear-button { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: #ff6b6b; border: none; color: white; cursor: pointer; font-size: 10px; width: 16px; height: 16px; display: none; align-items: center; justify-content: center; border-radius: 50%; transition: 0.2s; }
@@ -63,13 +63,54 @@
             position: relative; transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1); overflow: hidden;
             user-select: none;
         }
-        .account-card:hover { 
-            border-color: #4caf50; 
-            box-shadow: 0 12px 35px rgba(46, 125, 50, 0.25); 
-            background: #ffffff;
-            transform: scale(1.01);
-        }
-        .system-name { font-size: 1.2rem; font-weight: bold; color: #2e7d32; margin-bottom: 10px; padding: 0 115px 8px 10px; border-bottom: 2px solid #c8e6c9; position: relative; cursor: grab; }
+
+
+        /* 修改鼠标悬浮效果 - 改为柔和的淡粉色边框和更强的3D阴影 */
+.account-card:hover { 
+    /* 使用深一度的薄荷绿，既醒目又高级 */
+    border-color: #81c784; 
+    box-shadow: 
+        0 15px 35px rgba(76, 175, 80, 0.15), /* 绿色系投影 */
+        0 5px 15px rgba(0, 0, 0, 0.05),      /* 基础阴影 */
+        inset 0 0 10px rgba(255, 255, 255, 0.5); /* 内部珠光效果 */
+    background: #ffffff;
+    transform: scale(1.02) translateY(-5px); /* 略微增加上浮高度增强3D感 */
+}
+        
+        /* ========== 系统名称优化：单行显示，固定8个字符，超出显示省略号 ========== */
+ .system-name { 
+    font-size: 1.2rem; font-weight: bold; color: #2e7d32; 
+    margin-bottom: 10px; 
+    padding: 0 100px 8px 10px; /* 重点：将右边距缩小到100px左右，足够放下4个图标 */
+    border-bottom: 2px solid #c8e6c9; position: relative; cursor: grab;
+    height: 36px;
+    display: flex;
+    align-items: center;
+}
+        
+        /* 系统名称文本容器 - 优化版本 */
+.system-name-text {
+    display: inline-block;
+    flex: 1; /* 自动撑开 */
+    max-width: 16ch; /* 关键：16ch 约等于 8个汉字的宽度 */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: all 0.3s ease;
+    line-height: 1.2;
+    z-index: 1; /* 确保在底层 */
+}
+        
+        /* 鼠标悬浮时显示完整名称 - 优化版本 */
+.account-card:hover .system-name-text {
+    max-width: 250px; /* 或者你希望展开的最大宽度 */
+    white-space: nowrap;
+    overflow: visible;
+    position: relative;
+    z-index: 1; /* 依然保持在图标之下 */
+    background: rgba(255,255,255,0.9); /* 展开时加个微背景防止重叠看不清 */
+}
+        
         .account-item { display: flex; align-items: center; margin-top: 8px; gap: 10px; padding: 0 10px; }
         .item-label { font-size: 0.9rem; color: #4caf50; font-weight: 500; width: 40px; }
         .item-value { background: #f1f8e9; border: 2px solid #e8f5e9; border-radius: 8px; padding: 6px 10px; cursor: pointer; flex: 1; font-family: 'Courier New', monospace; font-size: 0.9rem; transition: 0.2s; }
@@ -203,12 +244,137 @@
 
         .url-tooltip { position: fixed; background: rgba(20, 20, 20, 0.9); backdrop-filter: blur(6px); color: #fff; padding: 8px 14px; border-radius: 8px; font-size: 12px; z-index: 10000; opacity: 0; transform: translateY(5px); pointer-events: none; transition: opacity 0.3s, transform 0.3s; white-space: nowrap; }
         .url-tooltip.show { opacity: 1; transform: translateY(0); }
-        .toast { position: fixed; top: 20px; right: 20px; background: #333; color: white; padding: 10px 20px; border-radius: 8px; transform: translateX(200%); transition: 0.3s; z-index: 10001; }
-        .toast.show { transform: translateX(0); }
-        
-        .card-icon { position: absolute; top: 50%; transform: translateY(-50%); cursor: pointer; opacity: 0.6; transition: 0.2s; }
+/* 替换原有的 .toast 样式 */
+.toast {
+    position: fixed;
+    top: 30px;
+    right: 30px;
+    
+    /* 1. 恢复浓郁的五彩背景：去掉了透明度，使用纯色渐变 */
+    background: linear-gradient(-45deg, #a8e6cf, #ffecb3, #d1c4e9, #81d4fa);
+    background-size: 400% 400%;
+    /* 稍微加快动画到 4s，让色彩流动感更强 */
+    animation: fluidGradient 4s ease infinite;
+    
+    /* 2. 扁平化修饰：保留细边框，去掉厚重阴影 */
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08); 
+
+    color: #1b5e20; /* 深度薄荷绿文字 */
+    padding: 12px 26px;
+    border-radius: 16px;
+    font-weight: 800;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 10001;
+    
+    /* 3. 右进左回 + 缩放效果 */
+    opacity: 0;
+    transform: translateX(120%) scale(0.6); /* 从更远的右侧滑入 */
+    transition: 
+        opacity 0.4s ease, 
+        transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    pointer-events: none;
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+}
+
+/* 装饰小点：深绿色更显眼 */
+.toast::before {
+    content: '';
+    width: 10px;
+    height: 10px;
+    background: #2e7d32;
+    border-radius: 50%;
+    flex-shrink: 0;
+    box-shadow: 0 0 8px rgba(46, 125, 50, 0.3);
+}
+
+
+/* 复制成功的波纹效果 */
+.copy-ripple {
+    position: relative;
+    overflow: hidden; /* 确保波纹不溢出 */
+    animation: ripple-animation 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+@keyframes ripple-animation {
+    0% {
+        box-shadow: 0 0 0 0px rgba(76, 175, 80, 0.4);
+        background-color: rgba(76, 175, 80, 0.1);
+    }
+    100% {
+        box-shadow: 0 0 0 15px rgba(76, 175, 80, 0);
+        background-color: #f1f8e9; /* 恢复原状 */
+    }
+}
+
+/* 针对圆形图标的中心扩散涟漪 */
+.icon-ripple {
+    position: relative;
+}
+
+.icon-ripple::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 2px;
+    height: 2px;
+    background: rgba(76, 175, 80, 0.4);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    animation: icon-ripple-animation 0.6s cubic-bezier(0, 0, 0.2, 1);
+    pointer-events: none;
+}
+
+@keyframes icon-ripple-animation {
+    0% {
+        width: 0;
+        height: 0;
+        opacity: 1;
+    }
+    100% {
+        width: 40px;
+        height: 40px;
+        opacity: 0;
+    }
+}
+
+
+/* 针对删除按钮的红色涟漪 */
+.delete-ripple {
+    position: relative;
+    overflow: hidden; /* 确保红光不超出按钮圆角 */
+}
+
+.delete-ripple::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 2px;
+    height: 2px;
+    background: rgba(211, 47, 47, 0.4); /* 警示红 */
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    animation: delete-ripple-animation 0.5s ease-out;
+    pointer-events: none;
+}
+
+@keyframes delete-ripple-animation {
+    0% { width: 0; height: 0; opacity: 1; }
+    100% { width: 120px; height: 120px; opacity: 0; }
+}
+
+        .card-icon { position: absolute; top: 50%; transform: translateY(-50%); cursor: pointer; opacity: 0.6; transition: 0.2s; z-index: 10;}
         .card-icon:hover { opacity: 1; transform: translateY(-50%) scale(1.1); }
-        .copy-all-icon { right: 8px; } .delete-icon { right: 34px; } .edit-icon { right: 60px; } .link-icon { right: 86px; color: #2196f3; }
+        .copy-all-icon { right: 8px; } .delete-icon { right: 34px; } .edit-icon { right: 60px; color: #ffa000; /* 高级的琥珀金 */} .link-icon { right: 86px; color: #2196f3; }
     </style>
 </head>
 <body>
@@ -236,9 +402,9 @@
     <div class="modal-overlay" id="modalOverlay">
         <div class="modal">
             <div class="modal-title" id="modalTitle">新增账号</div>
-            <form id="accountForm">
+            <form id="accountForm" autocomplete="off" >
                 <input type="hidden" id="accountId">
-                <div class="form-group"><label class="required">系统名称</label><input type="text" id="system" required></div>
+                <div class="form-group"><label class="required">系统名称</label><input type="text" id="system" placeholder="系统名称尽量不要超过9个汉字" required></div>
                 <div class="form-group"><label class="required">登录账号</label><input type="text" id="username" required></div>
                 <div class="form-group"><label class="required">登录密码</label><input type="text" id="password" required></div>
                 <div class="form-group"><label>访问地址 (URL)</label><input type="text" id="url"></div>
@@ -327,7 +493,7 @@
 
                 card.innerHTML = `
                     <div class="system-name">
-                        <span>${highlightText(acc.system)}</span>
+                        <span class="system-name-text">${highlightText(acc.system)}</span>
                         ${acc.url ? `<div class="card-icon link-icon" data-url="${acc.url}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></div>` : ''}
                         <div class="card-icon edit-icon" onclick="openModal('${acc.id}')"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></div>
                         <div class="card-icon delete-icon" onclick="toggleDelBar(this, true)"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#f44336" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></div>
@@ -363,8 +529,27 @@
         }
         function hideTooltip() { document.getElementById('globalTooltip').classList.remove('show'); }
         function toggleDelBar(el, show) { el.closest('.account-card').querySelector('.delete-bar').classList.toggle('active', show); }
-        async function doDelete(id) { await supabaseClient.from('accounts').delete().eq('id', id); showToast('已成功删除'); loadData(); }
-        
+ async function doDelete(id) { 
+    // 获取触发点击的确认按钮
+    const event = window.event;
+    const target = event ? event.currentTarget : null;
+
+    if (target) {
+        target.classList.add('delete-ripple');
+    }
+
+    // 执行删除逻辑
+    const { error } = await supabaseClient.from('accounts').delete().eq('id', id); 
+    
+    if (!error) {
+        showToast('已成功删除'); 
+        // 稍微延迟加载数据，让用户看清按钮的反馈
+        setTimeout(() => loadData(), 200); 
+    } else {
+        showToast('删除失败');
+        if (target) target.classList.remove('delete-ripple');
+    }
+}      
         function bindEvents() {
             const si = document.getElementById('searchInput');
             si.oninput = (e) => {
@@ -403,14 +588,50 @@
         }
         function closeModal() { document.getElementById('modalOverlay').classList.remove('show'); }
         
-        function copyText(t, type) { navigator.clipboard.writeText(t).then(() => showToast(`${type}已复制`)); }
-        function copyAll(id) { 
-            const acc = accounts.find(a => a.id === id); 
-            let info = `系统：${acc.system}\n`;
-            if(acc.url) info += `地址：${acc.url}\n`;
-            info += `账号：${acc.username}\n密码：${acc.password}`;
-            copyText(info, '全部信息'); 
+function copyText(t, type) {
+    // 获取当前的事件对象
+    const event = window.event;
+    const target = event ? event.currentTarget : null;
+
+    navigator.clipboard.writeText(t).then(() => {
+        showToast(`${type}已复制`);
+        
+        // 如果触发了点击事件，则增加波纹动效
+        if (target && target.classList.contains('item-value')) {
+            target.classList.remove('copy-ripple'); // 先移除（防止连续点击无效）
+            void target.offsetWidth;               // 触发重绘 (Reflow)
+            target.classList.add('copy-ripple');
+            
+            // 动画结束后移除类名，方便下次触发
+            setTimeout(() => {
+                target.classList.remove('copy-ripple');
+            }, 600);
         }
+    });
+}
+function copyAll(id) { 
+    // 获取触发点击的图标元素
+    const event = window.event;
+    const target = event ? event.currentTarget : null;
+
+    const acc = accounts.find(a => a.id === id); 
+    let info = `系统：${acc.system}\n`;
+    if(acc.url) info += `地址：${acc.url}\n`;
+    info += `账号：${acc.username}\n密码：${acc.password}`;
+    
+    // 调用 copyText 执行复制，但我们在这里手动给图标加个特殊动效
+    navigator.clipboard.writeText(info).then(() => {
+        showToast('全部信息已复制');
+        
+        // 图标涟漪动效
+        if (target) {
+            target.classList.remove('icon-ripple');
+            void target.offsetWidth; // 触发重绘
+            target.classList.add('icon-ripple');
+            setTimeout(() => target.classList.remove('icon-ripple'), 600);
+        }
+    });
+}
         function showToast(m) { const t = document.getElementById('toast'); t.innerText = m; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2000); }
         function updateTime() {
             const now = new Date();
