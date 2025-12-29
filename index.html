@@ -300,18 +300,13 @@
 .copy-ripple {
     position: relative;
     overflow: hidden; /* 确保波纹不溢出 */
-    animation: ripple-animation 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+    animation: ripple-animation 1s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
+/* 调整关键帧，让消失的过程更缓慢自然 */
 @keyframes ripple-animation {
-    0% {
-        box-shadow: 0 0 0 0px rgba(76, 175, 80, 0.4);
-        background-color: rgba(76, 175, 80, 0.1);
-    }
-    100% {
-        box-shadow: 0 0 0 15px rgba(76, 175, 80, 0);
-        background-color: #f1f8e9; /* 恢复原状 */
-    }
+    0% { box-shadow: 0 0 0 0px rgba(76, 175, 80, 0.5); background-color: rgba(76, 175, 80, 0.1); }
+    100% { box-shadow: 0 0 0 20px rgba(76, 175, 80, 0); background-color: transparent; }
 }
 
 /* 针对圆形图标的中心扩散涟漪 */
@@ -329,21 +324,13 @@
     background: rgba(76, 175, 80, 0.4);
     border-radius: 50%;
     transform: translate(-50%, -50%);
-    animation: icon-ripple-animation 0.6s cubic-bezier(0, 0, 0.2, 1);
+    animation: icon-ripple-animation 1s cubic-bezier(0, 0, 0.2, 1);
     pointer-events: none;
 }
 
 @keyframes icon-ripple-animation {
-    0% {
-        width: 0;
-        height: 0;
-        opacity: 1;
-    }
-    100% {
-        width: 40px;
-        height: 40px;
-        opacity: 0;
-    }
+    0% { width: 0; height: 0; opacity: 1; }
+    100% { width: 50px; height: 50px; opacity: 0; }
 }
 
 
@@ -363,13 +350,24 @@
     background: rgba(211, 47, 47, 0.4); /* 警示红 */
     border-radius: 50%;
     transform: translate(-50%, -50%);
-    animation: delete-ripple-animation 0.5s ease-out;
+    animation: delete-ripple-animation 1s ease-out;
     pointer-events: none;
 }
 
 @keyframes delete-ripple-animation {
-    0% { width: 0; height: 0; opacity: 1; }
-    100% { width: 120px; height: 120px; opacity: 0; }
+    0% { width: 0; height: 0; opacity: 0.8; }
+    100% { width: 180px; height: 180px; opacity: 0; }
+}
+
+
+/* 搜索框专属涟漪效果 */
+.search-ripple {
+    animation: search-glow 1s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+@keyframes search-glow {
+    0% { box-shadow: 0 0 0 0px rgba(76, 175, 80, 0.4); }
+    100% { box-shadow: 0 0 0 15px rgba(76, 175, 80, 0); }
 }
 
         .card-icon { position: absolute; top: 50%; transform: translateY(-50%); cursor: pointer; opacity: 0.6; transition: 0.2s; z-index: 10;}
@@ -441,11 +439,15 @@
 
         function initShortcuts() {
             document.addEventListener('keydown', (e) => {
-                if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
-                    e.preventDefault();
-                    const si = document.getElementById('searchInput');
-                    si.focus(); si.select();
-                }
+ if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+            e.preventDefault();
+            const si = document.getElementById('searchInput');
+            si.focus(); 
+            si.select();
+            
+            // 触发涟漪效果
+            triggerSearchRipple(si);
+        }
                 if (e.key === 'Escape') {
                     const si = document.getElementById('searchInput');
                     if (document.getElementById('modalOverlay').classList.contains('show')) {
@@ -551,7 +553,11 @@
     }
 }      
         function bindEvents() {
+		
+		
             const si = document.getElementById('searchInput');
+			// 手动点击时触发涟漪
+    si.addEventListener('mousedown', () => triggerSearchRipple(si));
             si.oninput = (e) => {
                 document.getElementById('clearButton').style.display = e.target.value ? 'flex' : 'none';
                 render(e.target.value);
@@ -605,9 +611,15 @@ function copyText(t, type) {
             // 动画结束后移除类名，方便下次触发
             setTimeout(() => {
                 target.classList.remove('copy-ripple');
-            }, 600);
+            }, 800);
         }
     });
+}
+function triggerSearchRipple(el) {
+    el.classList.remove('search-ripple');
+    void el.offsetWidth; // 强制重绘
+    el.classList.add('search-ripple');
+    setTimeout(() => el.classList.remove('search-ripple'), 800);
 }
 function copyAll(id) { 
     // 获取触发点击的图标元素
@@ -628,7 +640,7 @@ function copyAll(id) {
             target.classList.remove('icon-ripple');
             void target.offsetWidth; // 触发重绘
             target.classList.add('icon-ripple');
-            setTimeout(() => target.classList.remove('icon-ripple'), 600);
+            setTimeout(() => target.classList.remove('icon-ripple'), 800);
         }
     });
 }
