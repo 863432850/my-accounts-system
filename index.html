@@ -92,7 +92,7 @@
 .system-name-text {
     display: inline-block;
     flex: 1; /* 自动撑开 */
-    max-width: 16ch; /* 关键：16ch 约等于 8个汉字的宽度 */
+    max-width: 20ch; /* 关键：20ch 约等于 10个汉字的宽度 */
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -245,51 +245,73 @@
         .url-tooltip { position: fixed; background: rgba(20, 20, 20, 0.9); backdrop-filter: blur(6px); color: #fff; padding: 8px 14px; border-radius: 8px; font-size: 12px; z-index: 10000; opacity: 0; transform: translateY(5px); pointer-events: none; transition: opacity 0.3s, transform 0.3s; white-space: nowrap; }
         .url-tooltip.show { opacity: 1; transform: translateY(0); }
 /* 替换原有的 .toast 样式 */
+/* 替换原有的 .toast 样式 */
 .toast {
     position: fixed;
     top: 30px;
     right: 30px;
     
-    /* 1. 恢复浓郁的五彩背景：去掉了透明度，使用纯色渐变 */
-    background: linear-gradient(-45deg, #a8e6cf, #ffecb3, #d1c4e9, #81d4fa);
+    /* 在原配色基础上降低饱和度（使用了更柔和的同色系RGBA） */
+    background: linear-gradient(-45deg, 
+        rgba(238, 119, 82, 0.85), 
+        rgba(231, 60, 126, 0.85), 
+        rgba(35, 166, 213, 0.85), 
+        rgba(35, 213, 171, 0.85)
+    );
     background-size: 400% 400%;
-    /* 稍微加快动画到 4s，让色彩流动感更强 */
     animation: fluidGradient 4s ease infinite;
     
-    /* 2. 扁平化修饰：保留细边框，去掉厚重阴影 */
-    border: 2px solid rgba(255, 255, 255, 0.8);
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08); 
+    /* 增加毛玻璃效果，让低饱和度颜色更有质感 */
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); 
 
-    color: #1b5e20; /* 深度薄荷绿文字 */
+    color: #ffffff; 
     padding: 12px 26px;
     border-radius: 16px;
-    font-weight: 500;
+    font-weight: 600;
     font-size: 1rem;
     display: flex;
     align-items: center;
     gap: 10px;
     z-index: 10001;
     
-    /* 3. 右进左回 + 缩放效果 */
+    /* 初始状态：右侧隐藏，从小变大 */
     opacity: 0;
-    transform: translateX(120%) scale(0.6); /* 从更远的右侧滑入 */
-    transition: 
-        opacity 0.8s ease, 
-        transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transform: translateX(120%) scale(0.5);
+    transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
     pointer-events: none;
 }
 
+/* 进入状态 */
 .toast.show {
     opacity: 1;
     transform: translateX(0) scale(1);
 }
+
+/* 退出状态：向左滑动，从大变小 */
+.toast.exit {
+    opacity: 0;
+    transform: translateX(-150vw) scale(0.3);
+    transition: all 0.8s ease-in;
+}
+/* 确保动画关键帧存在（如果之前没有定义的话） */
+@keyframes fluidGradient {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+
 
 /* 装饰小点：深绿色更显眼 */
 .toast::before {
     content: '';
     width: 10px;
     height: 10px;
-    background: #2e7d32;
+    background: #ffffff;
     border-radius: 50%;
     flex-shrink: 0;
     box-shadow: 0 0 8px rgba(46, 125, 50, 0.3);
@@ -403,7 +425,7 @@
             <div class="modal-title" id="modalTitle">新增账号</div>
             <form id="accountForm" autocomplete="off" >
                 <input type="hidden" id="accountId">
-                <div class="form-group"><label class="required">系统名称</label><input type="text" id="system" placeholder="系统名称尽量不要超过9个汉字" required></div>
+                <div class="form-group"><label class="required">系统名称</label><input type="text" id="system" placeholder="系统名称尽量不要超过10个汉字" required></div>
                 <div class="form-group"><label class="required">登录账号</label><input type="text" id="username" required></div>
                 <div class="form-group"><label class="required">登录密码</label><input type="text" id="password" required></div>
                 <div class="form-group"><label>访问地址 (URL)</label><input type="text" id="url"></div>
