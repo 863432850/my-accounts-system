@@ -257,13 +257,13 @@
     animation: fluidGradient 4s ease infinite;
     
     /* 2. 扁平化修饰：保留细边框，去掉厚重阴影 */
-    border: 1px solid rgba(255, 255, 255, 0.8);
+    border: 2px solid rgba(255, 255, 255, 0.8);
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08); 
 
     color: #1b5e20; /* 深度薄荷绿文字 */
     padding: 12px 26px;
     border-radius: 16px;
-    font-weight: 800;
+    font-weight: 500;
     font-size: 1rem;
     display: flex;
     align-items: center;
@@ -274,7 +274,7 @@
     opacity: 0;
     transform: translateX(120%) scale(0.6); /* 从更远的右侧滑入 */
     transition: 
-        opacity 0.4s ease, 
+        opacity 0.8s ease, 
         transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
     pointer-events: none;
 }
@@ -372,7 +372,8 @@
 
         .card-icon { position: absolute; top: 50%; transform: translateY(-50%); cursor: pointer; opacity: 0.6; transition: 0.2s; z-index: 10;}
         .card-icon:hover { opacity: 1; transform: translateY(-50%) scale(1.1); }
-        .copy-all-icon { right: 8px; } .delete-icon { right: 34px; } .edit-icon { right: 60px; color: #ffa000; /* 高级的琥珀金 */} .link-icon { right: 86px; color: #2196f3; }
+        .copy-all-icon { right: 8px; } .delete-icon { right: 34px; } .edit-icon { right: 60px; color: #ffa000; /* 高级的琥珀金 */} 
+		.link-icon { right: 86px; color: #2196f3; }
     </style>
 </head>
 <body>
@@ -620,6 +621,30 @@ function triggerSearchRipple(el) {
     void el.offsetWidth; // 强制重绘
     el.classList.add('search-ripple');
     setTimeout(() => el.classList.remove('search-ripple'), 800);
+}
+function openUrl(url) {
+    if (!url) return;
+    
+    // 获取当前点击的图标元素
+    const event = window.event;
+    const target = event ? event.currentTarget : null;
+
+    // 触发涟漪动效
+    if (target) {
+        target.classList.remove('icon-ripple');
+        void target.offsetWidth; // 强制重绘，确保连续点击也能触发
+        target.classList.add('icon-ripple');
+        
+        // 0.8s 后移除类名
+        setTimeout(() => {
+            target.classList.remove('icon-ripple');
+        }, 800);
+    }
+
+    // 执行跳转（稍微延迟 100ms 跳转，让用户能看到涟漪的起始动作，体验更佳）
+    setTimeout(() => {
+        window.open(url.startsWith('http') ? url : `https://${url}`, '_blank');
+    }, 100);
 }
 function copyAll(id) { 
     // 获取触发点击的图标元素
