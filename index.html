@@ -400,8 +400,8 @@ position: absolute;
     bottom: 0;
     right: 0;
     /* 核心：1/4 圆形构造 */
-    width: 35px;  /* 宽度根据文字长度微调 */
-    height: 20px;
+    width: 33px;  /* 宽度根据文字长度微调 */
+    height: 18px;
     background: rgba(76, 175, 80, 0.12); /* 浅翠绿色 */
     
     /* 关键：左上角是大圆弧，其他三个角是直角，完美贴合右下角边缘 */
@@ -418,13 +418,14 @@ position: absolute;
     font-weight: normal;
     pointer-events: none;    /* 不影响下方元素的点击 */
     z-index: 1;
-    transition: all 0.5s ease;
+    transition: all 0.4s ease;
 }
 /* 悬停时稍微放大，更有灵动感 */
 .account-card:hover .category-tag {
     width: 60px;
     height: 30px;
 	    font-weight: bold;
+		  font-size:12px;
 		padding-right: 4px;      /* 距离右边缘距离 */
 		padding-bottom: 4px;     /* 距离下边缘距离 */
 
@@ -835,10 +836,10 @@ function render(keyword = '', filterCategory = 'all') {
         displayName = categoryInfo.dict_value_name.replace(/<[^>]+>/g, '').trim();
 		// 根据 code 设置不同的主题色
 		            if (acc.data_category === 'work') {
-		                tagBg = "rgba(106, 175, 107, 0.1)"; // 蓝色系
+		                tagBg = "rgba(105, 208, 255, 0.1)"; // 蓝色系
 		                textColor = "#2e7d32";
 		            } else if (acc.data_category === 'personal') {
-		                tagBg = "rgba(255, 175, 135, 0.1)";  // 绿色系
+		                tagBg = "rgba(255, 155, 105, 0.1)";  // 绿色系
 		                textColor = "#2e7d32";
 		            }
     }
