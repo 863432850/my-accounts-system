@@ -218,6 +218,8 @@
             transform: rotate(2deg) scale(1.05) !important;
             cursor: grabbing !important;
         }
+		
+		
 
         /* 卡片展示 */
         .accounts-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 15px; margin-top: 20px; }
@@ -226,8 +228,12 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 2px solid transparent; 
             position: relative; transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1); overflow: hidden;
             user-select: none;
+
 			
         }
+
+
+
 
         .account-card.dim { 
             display: block; /* 确保显示 */
@@ -235,17 +241,17 @@
             filter: grayscale(80%) blur(1px); /* 增加灰色和微模糊，突出匹配项 */
             pointer-events: none; /* 防止点击透明的卡片 */
             transform: scale(0.95); /* 稍微缩小，增加层级感 */
+			
         }
+
+
 
         /* 修改鼠标悬浮效果 - 改为柔和的淡粉色边框和更强的3D阴影 */
         .account-card:hover { 
             border-color: #81c784; 
-            box-shadow: 
-                0 15px 35px rgba(76, 175, 80, 0.15), 
-                0 5px 15px rgba(0, 0, 0, 0.05),      
-                inset 0 0 10px rgba(255, 255, 255, 0.5); 
-            background: #ffffff;
-            transform: scale(1.02) translateY(-5px); 
+            background: #f8fff9 !important; 
+    box-shadow: 0 10px 25px rgba(168, 230, 207, 0.2); /* 阴影带一点点底色 */
+    transform: translateY(-4px);
         }
         
         /* 系统名称优化 */
@@ -280,6 +286,37 @@
             background: rgba(255,255,255,0.9); 
         }
         
+/* 密码项布局 */
+.password-wrapper {
+    position: relative;
+    flex: 1;
+    display: flex;
+    align-items: center;
+}
+
+/* 确保密码文字有足够间距且高亮明显 */
+.password-value {
+    padding-right: 35px !important;
+}
+
+.password-toggle-icon {
+    position: absolute;
+    right: 8px;
+    cursor: pointer;
+    color: #81c784;
+    opacity: 0.6;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    z-index: 5;
+}
+
+.password-toggle-icon:hover {
+    opacity: 1;
+    transform: scale(1.1);
+    color: #2e7d32;
+}
+		
         .account-item { display: flex; align-items: center; margin-top: 8px; gap: 5px; padding: 0 5px; }
         .item-label { font-size: 0.9rem; color: #4caf50; font-weight: 500; width: 35px; }
         .item-value { background: #f1f8e9; border: 2px solid #e8f5e9; border-radius: 8px; padding: 6px 10px; cursor: pointer; flex: 1; font-family: 'Courier New', monospace; font-size: 0.9rem; transition: 0.2s; }
@@ -798,12 +835,11 @@ function filterByCategory(code, el) {
         }
 
         // 修改 render 支持分类过滤
-// 修改后的 render 函数
 function render(keyword = '', filterCategory = 'all') {
     const grid = document.getElementById('accountsGrid');
     const lowKey = keyword.trim().toLowerCase();
 
-    // 高亮处理函数
+    // 高亮处理内部函数
     const highlightText = (text) => {
         if (!lowKey) return text;
         const safeKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -811,70 +847,68 @@ function render(keyword = '', filterCategory = 'all') {
         return text.replace(regex, '<span class="highlight">$1</span>');
     };
 
+    // 1. 预筛选：分类过滤
+    let displayList = accounts.filter(acc => 
+        (filterCategory === 'all') || (acc.data_category === filterCategory)
+    );
+
+    // 2. 排序：搜索匹配项置顶
+    if (lowKey) {
+        displayList.sort((a, b) => {
+            const aMatch = [a.system, a.username, a.password].some(val => val.toLowerCase().includes(lowKey));
+            const bMatch = [b.system, b.username, b.password].some(val => val.toLowerCase().includes(lowKey));
+            if (aMatch && !bMatch) return -1;
+            if (!aMatch && bMatch) return 1;
+            return 0;
+        });
+    }
+
     grid.innerHTML = '';
 
-    accounts.forEach(acc => {
-        // 1. 分类匹配判断
-        const isCategoryMatch = (filterCategory === 'all') || (acc.data_category === filterCategory);
+    // 3. 渲染卡片
+    displayList.forEach(acc => {
+        const isSearchMatch = !lowKey || [acc.system, acc.username, acc.password].some(val => 
+            val.toLowerCase().includes(lowKey)
+        );
+
+        // --- 核心修改：密码显示逻辑 ---
+        const isPasswordHit = lowKey && acc.password.toLowerCase().includes(lowKey);
+        // 如果搜索命中了密码，自动设为显示状态(true)，否则默认隐藏(false)
+        const initialShow = isPasswordHit ? 'true' : 'false';
+        const displayPass = isPasswordHit ? highlightText(acc.password) : '••••••';
         
-        // 2. 搜索匹配判断
-        const isSearchMatch = !lowKey || 
-                        acc.system.toLowerCase().includes(lowKey) || 
-                        acc.username.toLowerCase().includes(lowKey) || 
-                        acc.password.toLowerCase().includes(lowKey);
+        const eyeIconSvg = isPasswordHit ? 
+            `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>` :
+            `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
+        // ----------------------------
 
-        if (!isCategoryMatch) return; // 分类不匹配直接跳过，不渲染
+        const categoryInfo = categories.find(c => c.dict_value_code === acc.data_category);
+        let displayName = acc.data_category || '未分类'; 
+        let tagBg = "rgba(76, 175, 80, 0.12)";
+        let textColor = "#2e7d32";
 
-// 2. 【关键：Code 转 Name】
-    // 在 categories 数组中寻找对应的 dict_value_code
-    const categoryInfo = categories.find(c => c.dict_value_code === acc.data_category);
-    
-    // 获取显示名称：如果找到了就处理名称（去掉图标标签），没找到则显示原始 code
-    let displayName = acc.data_category; 
-    if (categoryInfo) {
-        // 使用正则去掉可能包含的 <span> 或 <svg> 标签，只保留纯文字名称
-        displayName = categoryInfo.dict_value_name.replace(/<[^>]+>/g, '').trim();
-		// 根据 code 设置不同的主题色
-		            if (acc.data_category === 'work') {
-		                tagBg = "rgba(105, 208, 255, 0.1)"; // 蓝色系
-		                textColor = "#2e7d32";
-		            } else if (acc.data_category === 'personal') {
-		                tagBg = "rgba(255, 155, 105, 0.1)";  // 绿色系
-		                textColor = "#2e7d32";
-		            }
-    }
+        if (categoryInfo) {
+            displayName = categoryInfo.dict_value_name.replace(/<[^>]+>/g, '').trim();
+            if (acc.data_category === 'work') tagBg = "rgba(105, 208, 255, 0.1)";
+            else if (acc.data_category === 'personal') tagBg = "rgba(255, 155, 105, 0.1)";
+        }
+
         const card = document.createElement('div');
         card.className = isSearchMatch ? 'account-card' : 'account-card search-dim';
         card.dataset.id = acc.id;
 
-        // 构建 HTML
         card.innerHTML = `
             <div class="system-name">
                 <span class="system-name-text">${highlightText(acc.system)}</span>
-                ${acc.url ? `
-                <div class="card-icon link-icon">
-                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
-                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
-                    </svg>
-                </div>` : ''}
+                ${acc.url ? `<div class="card-icon link-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></div>` : ''}
                 <div class="card-icon edit-icon" onclick="openModal('${acc.id}')">
-                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                    </svg>
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                 </div>
                 <div class="card-icon delete-icon" onclick="toggleDelBar(this, true)">
-                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#f44336" stroke-width="2">
-                        <polyline points="3 6 5 6 21 6"></polyline>
-                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                    </svg>
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#f44336" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                 </div>
                 <div class="card-icon copy-all-icon" onclick="copyAll('${acc.id}')">
-                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
-                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                    </svg>
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
                 </div>
             </div>
             <div class="account-item">
@@ -883,9 +917,19 @@ function render(keyword = '', filterCategory = 'all') {
             </div>
             <div class="account-item">
                 <div class="item-label">密码</div>
-                <div class="item-value" onclick="copyText('${acc.password}', '密码')">${highlightText(acc.password)}</div>
+                <div class="password-wrapper">
+                    <div class="item-value password-value" 
+                         data-raw-password="${acc.password}" 
+                         data-is-shown="${initialShow}"
+                         onclick="copyText('${acc.password}', '密码')">
+                         ${displayPass}
+                    </div>
+                    <div class="password-toggle-icon" onclick="togglePassword(this, event)">
+                        ${eyeIconSvg}
+                    </div>
+                </div>
             </div>
-			<div class="category-tag" style="background: ${tagBg}; color: ${textColor};">${displayName}</div>
+            <div class="category-tag" style="background: ${tagBg}; color: ${textColor};">${displayName}</div>
             <div class="delete-bar">
                 <span>是否确认删除？</span>
                 <div style="display:flex; gap:10px;">
@@ -895,7 +939,7 @@ function render(keyword = '', filterCategory = 'all') {
             </div>
         `;
 
-        // 核心：手动绑定链接图标的 Tips 和 涟漪事件
+        // 绑定链接图标事件
         const linkIcon = card.querySelector('.link-icon');
         if (linkIcon && acc.url) {
             linkIcon.onmouseenter = (e) => showTooltip(e, acc.url);
@@ -912,6 +956,36 @@ function render(keyword = '', filterCategory = 'all') {
         grid.appendChild(card);
     });
 }
+
+function togglePassword(iconEl, event) {
+    event.stopPropagation(); // 防止触发复制
+    
+    const wrapper = iconEl.parentElement;
+    const valueEl = wrapper.querySelector('.item-value');
+    const isCurrentlyShown = valueEl.dataset.isShown === 'true';
+    const rawPassword = valueEl.dataset.rawPassword;
+    const keyword = document.getElementById('searchInput').value.trim();
+    
+    if (isCurrentlyShown) {
+        // 变为密文
+        valueEl.innerText = '••••••';
+        valueEl.dataset.isShown = 'false';
+        iconEl.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
+    } else {
+        // 变为明文（如果有搜索词，则应用高亮）
+        if (keyword && rawPassword.toLowerCase().includes(keyword.toLowerCase())) {
+            const safeKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const regex = new RegExp(`(${safeKeyword})`, 'gi');
+            valueEl.innerHTML = rawPassword.replace(regex, '<span class="highlight">$1</span>');
+        } else {
+            valueEl.innerText = rawPassword;
+        }
+        
+        valueEl.dataset.isShown = 'true';
+        iconEl.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
+    }
+}
+
 
 // 建议将事件绑定提取出来以保持 render 函数整洁
 function setupCardEvents(card, acc) {
