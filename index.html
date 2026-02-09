@@ -20,7 +20,7 @@
         .header h1 { font-size: 2.5rem; text-shadow: 1px 1px 2px rgba(0,0,0,0.1); margin-right: 20px; }
         
         /* 顶部容器布局：时钟 -> 搜索 -> 过滤器 */
-        .time-search-container { display: flex; align-items: center; gap: 10px; margin-left: 50px; }
+        .time-search-container { display: flex; align-items: center; gap: 10px; margin-left: 20px; }
         
         .clock-container { background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(10px); border-radius: 20px; padding: 10px 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid rgba(255,255,255,0.8); }
         .time-display { font-size: 1.8rem; font-weight: bold; color: #2e7d32; font-family: 'Courier New', monospace; }
@@ -49,7 +49,99 @@
     box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
 }
 
+/* 批量模式下的卡片样式 */
+.batch-mode .account-card {
+    cursor: pointer !important;
+    border: 2px dashed #ccc;
+}
+/* 被选中的卡片样式 */
+.account-card.selected-for-batch {
+    border: 2px solid #2e7d32 !important;
+    background-color: #e8f5e9 !important;
+    transform: scale(0.98);
+}
+/* 禁用批量模式下的内部按钮点击，防止误触复制单个 */
+.batch-mode .account-card .copy-btn, 
+.batch-mode .account-card .edit-btn,
+.batch-mode .account-card .delete-btn {
+    pointer-events: none;
+    opacity: 0.5;
+}
 
+/* 让全选按钮在悬停时更有反馈感 */
+#batchToolbar button.btn-glass:hover {
+    opacity: 0.8;
+    transform: translateY(-1px);
+}
+
+/* 批量模式下，鼠标滑过卡片时显示淡淡的绿色提示，告知可点击 */
+.batch-mode .account-card:not(.selected-for-batch):hover {
+    
+    border-color: #a8e6cf !important;
+}
+
+/* 针对底部工具栏按钮的加宽处理 */
+#batchToolbar .btn-glass {
+    min-width: 100px;  /* 设置最小宽度，确保全选/取消按钮也不至于太窄 */
+    padding: 10px 25px; /* 增加上下和左右的内边距 */
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+/* 专门给“复制选中”按钮设置更宽的尺寸，使其更显眼 */
+#batchToolbar .btn-save-glass {
+    min-width: 200px; /* 复制按钮更宽一点 */
+    background: #2e7d32; /* 强化颜色反馈 */
+    color: white;
+}
+
+/* 鼠标悬停时的效果增强 */
+#batchToolbar .btn-glass:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+/* 将图标容器定义为按钮样式 */
+.batch-icon-wrapper {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    
+    border-radius: 14px;
+    
+  
+    
+    cursor: pointer;
+    vertical-align: middle;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+
+/* 鼠标悬停交互 */
+.batch-icon-wrapper:hover {
+    background: #f0fdf4; /* 极淡的绿色 */
+    border-color: #2e7d32;
+
+    transform: translateY(-2px); /* 向上微浮 */
+    box-shadow: 0 6px 15px rgba(46, 125, 50, 0.15);
+}
+
+/* 点击时的反馈 */
+.batch-icon-wrapper:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* 当处于批量模式时，保持高亮 */
+.batch-mode .batch-icon-wrapper {
+    background: #2e7d32;
+    border-color: #2e7d32;
+}
+
+/* 批量模式下让图标变色以适应深色背景 */
+.batch-mode .batch-icon-wrapper svg path:first-child {
+    fill: #2e7d32; /* 改变原图标背景圆圈颜色 */
+}
 
 /* 1. 精简搜索框 */
 .search-input {
@@ -649,7 +741,12 @@ position: absolute;
 
     <div class="container">
         <div class="header">
-            <h1>🔐 账号密码管理器</h1>
+            <h1  >
+    🔐 账号密码管理器
+<span id="batchBtn" onclick="toggleBatchMode()" class="batch-icon-wrapper" title="批量复制卡片">
+    <svg t="1770618096037" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2219" width="29" height="29"><path d="M0 0m512 0l0 0q512 0 512 512l0 0q0 512-512 512l0 0q-512 0-512-512l0 0q0-512 512-512Z" fill="#F2FAFA" p-id="2220"></path><path d="M232.727273 244.363636m139.636363 0l279.272728 0q139.636364 0 139.636363 139.636364l0 279.272727q0 139.636364-139.636363 139.636364l-279.272728 0q-139.636364 0-139.636363-139.636364l0-279.272727q0-139.636364 139.636363-139.636364Z" fill="#30A5FF" p-id="2221"></path><path d="M649.262545 359.493818l26.856728 32.453818a37.829818 37.829818 0 0 1 8.890182 24.541091v241.512728a38.760727 38.760727 0 0 1-38.644364 38.644363H375.877818a38.760727 38.760727 0 0 1-38.644363-38.644363V416.488727a37.829818 37.829818 0 0 1 8.890181-24.541091l26.658909-32.453818a28.718545 28.718545 0 0 1 22.411637-10.600727h231.854545a28.043636 28.043636 0 0 1 22.213818 10.600727z m-26.84509 28.020364H399.837091l-15.464727 18.734545h253.672727zM375.877818 445.474909v212.526546h270.487273V445.474909z m212.526546 96.581818l-77.288728 77.288728-77.300363-77.288728h57.960727v-57.937454h38.621091v57.937454z" fill="#FFFFFF" p-id="2222"></path></svg>
+</span>
+</h1>
             <div class="time-search-container">
                 <div class="clock-container">
                     <div class="date-display">
@@ -1256,6 +1353,109 @@ window.onclick = function(event) {
                 }
             });
         }
+		
+		let isBatchMode = false;
+let selectedIds = new Set();
+
+// 切换批量模式
+function toggleBatchMode() {
+    isBatchMode = !isBatchMode;
+    const body = document.body;
+    const toolbar = document.getElementById('batchToolbar');
+    
+    if (isBatchMode) {
+        body.classList.add('batch-mode');
+        toolbar.style.display = 'flex';
+        showToast("已进入批量选择模式");
+    } else {
+        body.classList.remove('batch-mode');
+        toolbar.style.display = 'none';
+        selectedIds.clear();
+        document.querySelectorAll('.selected-for-batch').forEach(el => el.classList.remove('selected-for-batch'));
+        updateBatchCount();
+    }
+}
+
+// 监听卡片点击 (增量逻辑)
+document.getElementById('accountsGrid').addEventListener('click', function(e) {
+    if (!isBatchMode) return;
+    
+    // 找到被点击的卡片
+    const card = e.target.closest('.account-card');
+    if (!card) return;
+
+    const id = card.dataset.id;
+    if (selectedIds.has(id)) {
+        selectedIds.delete(id);
+        card.classList.remove('selected-for-batch');
+    } else {
+        selectedIds.add(id);
+        card.classList.add('selected-for-batch');
+    }
+    updateBatchCount();
+});
+
+function updateBatchCount() {
+    document.getElementById('selectedCount').innerText = `已选择 ${selectedIds.size} 项`;
+}
+
+// 执行批量复制
+function execBatchCopy() {
+    if (selectedIds.size === 0) {
+        showToast("请先选择卡片");
+        return;
+    }
+
+    // 从你原有的 accounts 数组中查找数据
+    const selectedData = accounts.filter(acc => selectedIds.has(String(acc.id)));
+    
+    const textToCopy = selectedData.map(acc => 
+        `系统: ${acc.system}\n账号: ${acc.username}\n密码: ${acc.password}\n地址: ${acc.url || '无'}`
+    ).join('\n\n---\n\n');
+
+    navigator.clipboard.writeText(textToCopy).then(() => {
+        showToast(`成功复制 ${selectedData.length} 项`);
+        toggleBatchMode(); // 完成后自动退出
+    });
+}
+
+// 【新增】全选/取消全选逻辑
+function selectAllBatch() {
+    // 获取当前页面上展示的所有卡片（考虑了搜索过滤后的情况）
+    const allVisibleCards = document.querySelectorAll('.account-card');
+    
+    // 如果已经全选了，则再次点击为“取消全选”
+    if (selectedIds.size === allVisibleCards.length && allVisibleCards.length > 0) {
+        selectedIds.clear();
+        allVisibleCards.forEach(card => card.classList.remove('selected-for-batch'));
+    } else {
+        // 全选当前可见的卡片
+        allVisibleCards.forEach(card => {
+            const id = card.dataset.id;
+            selectedIds.add(id);
+            card.classList.add('selected-for-batch');
+        });
+    }
+    updateBatchCount();
+}
+
+// 【优化】修改之前的 updateBatchCount，增加动态全选文字反馈
+function updateBatchCount() {
+    const countSpan = document.getElementById('selectedCount');
+    const allVisibleCards = document.querySelectorAll('.account-card');
+    countSpan.innerText = `已选择 ${selectedIds.size} 项`;
+    
+    // 可选：动态改变全选按钮文字（如果需要更精细，可以给全选按钮加个ID）
+}
     </script>
+<div id="batchToolbar" style="display:none; position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:white; padding:15px 35px; border-radius:50px; box-shadow:0 10px 40px rgba(0,0,0,0.2); z-index:10001; align-items:center; gap:20px;">
+    <span id="selectedCount" style="font-weight:bold; color:#2e7d32; margin-right: 10px;">已选择 0 项</span>
+    
+    <button onclick="selectAllBatch()" class="btn-glass" style="color: #2e7d32; border: 1px solid #2e7d32;">🔖 全选</button>
+    
+    <button onclick="execBatchCopy()" class="btn-glass btn-save-glass">👌 复制选中内容</button>
+    
+    <button onclick="toggleBatchMode()" class="btn-glass btn-cancel-glass">❌️ 关闭</button>
+</div>
 </body>
 </html>
