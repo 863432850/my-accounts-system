@@ -1411,7 +1411,7 @@ function execBatchCopy() {
     
     const textToCopy = selectedData.map(acc => 
         `系统: ${acc.system}\n账号: ${acc.username}\n密码: ${acc.password}\n地址: ${acc.url || '无'}`
-    ).join('\n\n---\n\n');
+    ).join('\n\n------------------------\n\n');
 
     navigator.clipboard.writeText(textToCopy).then(() => {
         showToast(`成功复制 ${selectedData.length} 项`);
@@ -1459,3 +1459,4 @@ function updateBatchCount() {
 </div>
 </body>
 </html>
+
