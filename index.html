@@ -149,21 +149,21 @@
     border: none;
     border-radius: 24px;
     font-size: 0.9rem;
-    width: 140px;
+    width: 127px;
     height: 46px;
     background: rgba(255, 255, 255, 0.4);
     backdrop-filter: blur(15px);
     box-shadow: inset 0 1px 2px rgba(255,255,255,0.4), 0 4px 15px rgba(0,0,0,0.03);
     transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
-.search-input:focus { width: 200px; background: rgba(255, 255, 255, 0.9); }
+.search-input:focus { width: 182px; background: rgba(255, 255, 255, 0.9); }
 
 /* 2. 灵动卷轴容器 */
 .nav-container {
     position: relative;
-    width: 140px; 
-    height: 46px;
-    margin-left: 10px;
+    width: 117px; 
+    height: 50px;
+    margin-left: 0;
     z-index: 2000;
     perspective: 1000px; /* 为3D动画准备 */
 }
@@ -174,15 +174,22 @@
     top: 0;
     left: 0;
     width: 100%;
-    background: rgba(255, 255, 255, 0.7);
-    backdrop-filter: blur(30px) saturate(180%);
-    -webkit-backdrop-filter: blur(30px) saturate(180%);
-    border-radius: 23px;
-    border: 1px solid rgba(255, 255, 255, 0.8);
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
+    background: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border-radius: 0 25px 25px 0;
+    border: 1px solid transparent;
+    box-shadow: none;
     overflow: hidden;
     height: 50px; 
-    transition: all 0.8s cubic-bezier(0.5, 1.2, 0.3, 1);
+    outline: none;
+    transition: height 0.8s cubic-bezier(0.5, 1.2, 0.3, 1),
+                max-height 0.8s cubic-bezier(0.5, 1.2, 0.3, 1),
+                background 0.4s ease,
+                box-shadow 0.4s ease,
+                padding 0.4s ease,
+                border-color 0.3s ease,
+                border-radius 0.4s ease;
     display: flex;
     flex-direction: column;
     transform-origin: top center;
@@ -192,21 +199,26 @@
     height: auto;
     max-height: 800px;
     background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(30px) saturate(180%);
+    -webkit-backdrop-filter: blur(30px) saturate(180%);
     padding: 10px 0;
-    box-shadow: 0 40px 100px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 16px 36px rgba(46, 125, 50, 0.12);
+    border: 1px solid rgba(200, 230, 201, 0.85);
+    border-radius: 18px;
+    outline: none;
 }
 
 /* 4. 选项样式：全居中 */
 .tab {
     width: 100%;
-    min-height: 52px;
+    min-height: 50px;
     display: flex;
 	line-height: 1; /* 消除字体自带的行间距偏置 */
 	    height: 100%;
     align-items: center;
     justify-content: center; /* 图标和文字整体居中 */
-    gap: 10px;
-    font-size: 15px;
+            gap: 6px;
+    font-size: 13px;
     font-weight: 600;
     color: #444;
     cursor: pointer;
@@ -243,7 +255,6 @@
 .tab:hover:not(.active) {
     background: rgba(46, 125, 50, 0.08);
     color: #1b5e20;
-    letter-spacing: 1px;
 }
 
 /* 隐藏旧元素 */
@@ -256,7 +267,7 @@
         .search-icon-fixed { position: absolute; left: 10px; width: 16px; height: 16px; color: #4caf50; pointer-events: none; z-index: 2;}
         .search-input {
             padding: 6px 35px 6px 32px; border: 2px solid #c8e6c9; border-radius: 20px;
-            font-size: 0.9rem; width: 200px; height: 40px; transition: 0.3s; background: rgba(255,255,255,0.95);
+            font-size: 0.9rem; width: 182px; height: 40px; transition: 0.3s; background: rgba(255,255,255,0.95);
         }
         .search-input:focus { outline: none; border-color: #4caf50; }
         .clear-button { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: #ff6b6b; border: none; color: white; cursor: pointer; font-size: 10px; width: 16px; height: 16px; display: none; align-items: center; justify-content: center; border-radius: 50%; transition: 0.2s; }
@@ -310,11 +321,38 @@
             transform: rotate(2deg) scale(1.05) !important;
             cursor: grabbing !important;
         }
+        .accounts-grid.project-masonry .sortable-ghost {
+            opacity: 1 !important;
+            background: rgba(76, 175, 80, 0.08) !important;
+            border: 2px dashed #4caf50 !important;
+            box-shadow: none !important;
+            transform: none !important;
+            pointer-events: none !important;
+        }
+        .accounts-grid.project-masonry .sortable-ghost:hover {
+            transform: none !important;
+            background: rgba(76, 175, 80, 0.08) !important;
+            border: 2px dashed #4caf50 !important;
+            box-shadow: none !important;
+        }
+        .accounts-grid.project-masonry .sortable-ghost * {
+            visibility: hidden !important;
+        }
+        .accounts-grid.is-sorting .project-card:hover {
+            transform: none;
+        }
 		
 		
 
         /* 卡片展示 */
         .accounts-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 15px; margin-top: 20px; }
+        .accounts-grid.project-masonry {
+            display: block;
+            position: relative;
+        }
+        .accounts-grid.project-masonry .empty-state {
+            width: 100%;
+        }
         .account-card { 
             background: rgba(255, 255, 255, 0.95); border-radius: 15px; padding: 12px; 
             box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 2px solid transparent; 
@@ -550,7 +588,8 @@ position: absolute;
     transition: all 0.4s ease;
 }
 /* 悬停时稍微放大，更有灵动感 */
-.account-card:hover .category-tag {
+.account-card:hover .category-tag,
+.project-card:hover .category-tag {
     width: 60px;
     height: 30px;
 	    font-weight: bold;
@@ -619,14 +658,14 @@ position: absolute;
 		
 		/* 隐藏原生 select */
 /* 修改后 */
-#dataCategory {
-    display: block !important; /* 强制显示 */
+#projectCategory {
+    display: block !important;
     width: 100%;
     padding: 10px;
     border: 1px solid #ddd;
     border-radius: 10px;
     background: white;
-    appearance: auto; /* 恢复原生下拉箭头 */
+    appearance: auto;
     -webkit-appearance: menulist;
 }
 /* 链接图标点击涟漪效果 */
@@ -735,6 +774,370 @@ position: absolute;
         .card-icon:hover { opacity: 1; transform: translateY(-50%) scale(1.1); }
         .copy-all-icon { right: 8px; } .delete-icon { right: 34px; } .edit-icon { right: 60px; color: #ffa000; } 
 		.link-icon { right: 86px; color: #2196f3; }
+
+        /* ================= 顶部融合：单账 / 项目 + 全部数据 ================= */
+        .filter-combo {
+            display: flex;
+            align-items: center;
+            height: 50px;
+            margin-left: 10px;
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(30px) saturate(180%);
+            -webkit-backdrop-filter: blur(30px) saturate(180%);
+            border-radius: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            position: relative;
+            z-index: 2000;
+        }
+        .view-tabs {
+            display: flex;
+            align-items: center;
+            padding: 4px 5px 4px 6px;
+            flex-shrink: 0;
+        }
+        .view-toggle {
+            position: relative;
+            flex-shrink: 0;
+            width: 40px;
+            height: 32px;
+            padding: 0;
+            border: none;
+            border-radius: 16px;
+            cursor: pointer;
+            background: linear-gradient(160deg, #ffffff 0%, #e8f5e9 55%, #c8e6c9 100%);
+            box-shadow:
+                inset 0 1px 0 rgba(255,255,255,0.95),
+                inset 0 -1px 0 rgba(46,125,50,0.06),
+                0 2px 10px rgba(46,125,50,0.16),
+                0 0 0 1px rgba(76,175,80,0.18);
+            transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.32s ease, background 0.35s ease;
+            overflow: hidden;
+            user-select: none;
+        }
+        .view-toggle::before {
+            content: '';
+            position: absolute;
+            inset: 1px 1px auto 1px;
+            height: 48%;
+            border-radius: 15px 15px 50% 50%;
+            background: linear-gradient(180deg, rgba(255,255,255,0.72), rgba(255,255,255,0));
+            pointer-events: none;
+        }
+        .view-toggle.is-project {
+            background: linear-gradient(160deg, #ffffff 0%, #e3f2fd 55%, #bbdefb 100%);
+            box-shadow:
+                inset 0 1px 0 rgba(255,255,255,0.95),
+                inset 0 -1px 0 rgba(21,101,192,0.06),
+                0 2px 10px rgba(21,101,192,0.16),
+                0 0 0 1px rgba(33,150,243,0.2);
+        }
+        .view-toggle:hover {
+            transform: translateY(-1px) scale(1.05);
+            box-shadow:
+                inset 0 1px 0 rgba(255,255,255,0.95),
+                0 5px 16px rgba(46,125,50,0.22),
+                0 0 0 1px rgba(76,175,80,0.22);
+        }
+        .view-toggle.is-project:hover {
+            box-shadow:
+                inset 0 1px 0 rgba(255,255,255,0.95),
+                0 5px 16px rgba(21,101,192,0.22),
+                0 0 0 1px rgba(33,150,243,0.24);
+        }
+        .view-toggle:active {
+            transform: scale(0.94);
+        }
+        .view-toggle-label {
+            position: relative;
+            z-index: 1;
+            display: block;
+            font-size: 13px;
+            font-weight: 800;
+            line-height: 32px;
+            letter-spacing: 0.5px;
+            color: #2e7d32;
+            transition: color 0.35s ease, transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.2s ease;
+        }
+        .view-toggle.is-project .view-toggle-label {
+            color: #1565c0;
+        }
+        .view-toggle-label.bump {
+            transform: scale(0.72);
+            opacity: 0;
+        }
+        .filter-combo-divider {
+            width: 1px;
+            height: 16px;
+            background: rgba(46, 125, 50, 0.22);
+            flex-shrink: 0;
+        }
+        .empty-state {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 56px 20px;
+            color: #66bb6a;
+            background: rgba(255,255,255,0.45);
+            border-radius: 20px;
+            border: 1px dashed rgba(76, 175, 80, 0.45);
+        }
+        .empty-state strong { display: block; font-size: 1.15rem; color: #2e7d32; margin-bottom: 8px; }
+
+        /* 项目卡片 */
+        .project-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 18px;
+            padding: 12px 12px 18px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            border: 2px solid transparent;
+            position: relative;
+            transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+            overflow: hidden;
+            user-select: none;
+            align-self: start;
+            height: auto;
+        }
+        .project-card:hover {
+            border-color: #81c784;
+            background: #f8fff9 !important;
+            box-shadow: 0 10px 25px rgba(168, 230, 207, 0.2);
+            transform: translateY(-4px);
+        }
+        .project-card.search-dim {
+            opacity: 0.3;
+            filter: grayscale(90%) blur(1px);
+            pointer-events: none;
+            transform: scale(0.96);
+        }
+        .env-list { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; }
+        .env-block {
+            background: #f4faf4;
+            border: 1px solid #e3f2e3;
+            border-radius: 12px;
+            padding: 8px 10px 10px;
+        }
+        .env-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 6px;
+            gap: 8px;
+        }
+        .env-head-left {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            min-width: 0;
+        }
+        .env-link-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 22px;
+            height: 22px;
+            color: #2196f3;
+            cursor: pointer;
+            opacity: 0.78;
+            border-radius: 6px;
+            flex-shrink: 0;
+            position: relative;
+        }
+        .env-link-icon:hover {
+            opacity: 1;
+            background: rgba(33, 150, 243, 0.12);
+        }
+        .env-badge {
+            display: inline-flex;
+            align-items: center;
+            font-size: 12px;
+            font-weight: 800;
+            padding: 2px 8px;
+            border-radius: 999px;
+            letter-spacing: 0.5px;
+        }
+        .env-badge.prod { background: rgba(229, 57, 53, 0.12); color: #c62828; }
+        .env-badge.test { background: rgba(30, 136, 229, 0.12); color: #1565c0; }
+        .env-badge.stage { background: rgba(251, 140, 0, 0.14); color: #ef6c00; }
+        .env-badge.dev { background: rgba(67, 160, 71, 0.14); color: #2e7d32; }
+        .env-badge.demo { background: rgba(142, 36, 170, 0.12); color: #6a1b9a; }
+        .env-badge.other { background: rgba(96, 125, 139, 0.14); color: #455a64; }
+        .env-copy {
+            border: none;
+            background: transparent;
+            color: #2e7d32;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            opacity: 0.7;
+        }
+        .env-copy:hover { opacity: 1; }
+        .batch-mode .project-card {
+            cursor: pointer !important;
+            border: 2px dashed #ccc;
+        }
+        .batch-mode .project-card .copy-all-icon,
+        .batch-mode .project-card .edit-icon,
+        .batch-mode .project-card .delete-icon,
+        .batch-mode .project-card .env-copy,
+        .batch-mode .project-card .item-value,
+        .batch-mode .project-card .password-toggle-icon,
+        .batch-mode .project-card .link-icon,
+        .batch-mode .project-card .env-link-icon {
+            pointer-events: none;
+            opacity: 0.5;
+        }
+        .project-card.selected-for-batch {
+            border: 2px solid #2e7d32 !important;
+            background-color: #e8f5e9 !important;
+            transform: scale(0.98);
+        }
+
+        /* 项目批量录入弹窗 */
+        .project-modal {
+            width: min(880px, 94vw);
+            height: min(86vh, 860px);
+            max-height: 90vh;
+            padding: 0;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .project-modal .modal-title {
+            flex-shrink: 0;
+            margin: 0;
+            padding: 22px 28px 14px;
+            background: rgba(255, 255, 255, 0.92);
+            border-bottom: 1px solid #e8f0e8;
+            z-index: 2;
+        }
+        .project-form {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-height: 0;
+        }
+        .project-modal-body {
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            padding: 16px 28px 12px;
+        }
+        .project-modal .modal-btns {
+            flex-shrink: 0;
+            margin: 0;
+            padding: 14px 28px 22px;
+            border-top: 1px solid #e8f0e8;
+            background: rgba(255, 255, 255, 0.94);
+            z-index: 2;
+        }
+        .project-meta {
+            display: grid;
+            grid-template-columns: 1.4fr 1fr;
+            gap: 12px;
+        }
+        .env-editor-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 6px 0 10px;
+            color: #2e7d32;
+            font-weight: 800;
+            font-size: 0.92rem;
+        }
+        .add-env-btn {
+            border: 1px dashed #81c784;
+            background: rgba(76, 175, 80, 0.08);
+            color: #2e7d32;
+            border-radius: 10px;
+            padding: 6px 12px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .env-row {
+            background: rgba(241, 248, 233, 0.7);
+            border: 1px solid #dcedc8;
+            border-radius: 14px;
+            padding: 12px;
+            margin-bottom: 10px;
+        }
+        .env-row-top {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: flex-end;
+            margin-bottom: 8px;
+        }
+        .env-name-field {
+            flex: 1;
+            min-width: 160px;
+        }
+        .env-color-dots {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            padding: 0 2px 8px;
+        }
+        .env-color-dot {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.9);
+            box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.12);
+            cursor: pointer;
+            padding: 0;
+            background: currentColor;
+        }
+        .env-color-dot.active {
+            box-shadow: 0 0 0 2px #fff, 0 0 0 4px currentColor;
+            transform: scale(1.08);
+        }
+        .env-row-fields {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .env-row-fields .full { grid-column: 1 / -1; }
+        .env-row-actions {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding-bottom: 1px;
+        }
+        .env-sort-btn {
+            width: 32px;
+            height: 40px;
+            border: 1px solid #d7e3d7;
+            background: #fff;
+            color: #546e7a;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 800;
+            line-height: 1;
+        }
+        .env-sort-btn:hover:not(:disabled) {
+            background: #eceff1;
+            color: #37474f;
+        }
+        .env-sort-btn:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+        }
+        .mini-del-env {
+            border: none;
+            background: rgba(244, 67, 54, 0.08);
+            color: #e53935;
+            border-radius: 8px;
+            padding: 8px 10px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 700;
+            height: 40px;
+            margin-bottom: 1px;
+        }
+        @media (max-width: 720px) {
+            .project-meta, .env-row-fields { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body>
@@ -761,8 +1164,15 @@ position: absolute;
                     <button class="clear-button" id="clearButton">✕</button>
                 </div>
 
-                <div class="nav-container" id="categoryFilter">
+                <div class="filter-combo">
+                    <div class="view-tabs">
+                        <button type="button" class="view-toggle" id="viewToggleBtn" onclick="toggleView()" title="当前：单账号 · 点击切换">
+                            <span class="view-toggle-label" id="viewToggleLabel">单</span>
+                        </button>
                     </div>
+                    <div class="filter-combo-divider"></div>
+                    <div class="nav-container" id="categoryFilter"></div>
+                </div>
             </div>
         </div>
         <div class="accounts-grid" id="accountsGrid"></div>
@@ -791,6 +1201,36 @@ position: absolute;
         </div>
     </div>
 
+    <div class="modal-overlay" id="projectModalOverlay">
+        <div class="modal project-modal">
+            <div class="modal-title" id="projectModalTitle">批量录入项目账号</div>
+            <form id="projectForm" class="project-form" autocomplete="off">
+                <div class="project-modal-body">
+                    <input type="hidden" id="editingProjectName">
+                    <div class="project-meta">
+                        <div class="form-group">
+                            <label class="required">项目 / 系统名称</label>
+                            <input type="text" id="projectName" placeholder="例如：xxxx项目" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="required">数据分类</label>
+                            <select id="projectCategory" required></select>
+                        </div>
+                    </div>
+                    <div class="env-editor-title">
+                        <span>环境账号（同一系统可录多套）</span>
+                        <button type="button" class="add-env-btn" onclick="addEnvRow()">+ 添加环境</button>
+                    </div>
+                    <div id="envRows"></div>
+                </div>
+                <div class="modal-btns">
+                    <button type="button" class="btn-glass btn-cancel-glass" onclick="closeProjectModal()">取消</button>
+                    <button type="submit" class="btn-glass btn-save-glass">保存全部</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <button class="add-btn" id="addBtn">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
     </button>
@@ -806,6 +1246,31 @@ position: absolute;
 
         let accounts = [];
         let categories = []; // 存储分类数据
+        let currentView = sessionStorage.getItem('accountView') || 'single';
+        let editingProjectIds = [];
+        const PROJECT_SEP = ' :: ';
+        const ENV_COLOR_SEP = ' ::color:: ';
+        const ENV_COLOR_PRESETS = [
+            { id: 'prod', label: '红', fg: '#c62828' },
+            { id: 'test', label: '蓝', fg: '#1565c0' },
+            { id: 'stage', label: '橙', fg: '#ef6c00' },
+            { id: 'demo', label: '紫', fg: '#6a1b9a' },
+            { id: 'pink', label: '粉', fg: '#c2185b' },
+            { id: 'indigo', label: '靛', fg: '#3949ab' },
+            { id: 'brown', label: '棕', fg: '#6d4c41' },
+            { id: 'other', label: '灰', fg: '#455a64' }
+        ];
+        const ENV_COLOR_BG = {
+            prod: 'rgba(229, 57, 53, 0.12)',
+            test: 'rgba(30, 136, 229, 0.12)',
+            stage: 'rgba(251, 140, 0, 0.14)',
+            demo: 'rgba(142, 36, 170, 0.12)',
+            pink: 'rgba(194, 24, 91, 0.12)',
+            indigo: 'rgba(57, 73, 171, 0.12)',
+            brown: 'rgba(109, 76, 65, 0.12)',
+            other: 'rgba(96, 125, 139, 0.14)'
+        };
+        const LEGACY_ENV_COLOR = { dev: 'indigo', teal: 'pink' };
 
         // 将滑块动画函数提升到全局，解决 ReferenceError
         function showFollow(index) {
@@ -838,7 +1303,12 @@ position: absolute;
             loadData();
             bindEvents();
             initDraggable();
-            initShortcuts(); 
+            initShortcuts();
+            window.addEventListener('resize', () => {
+                if (currentView !== 'project') return;
+                clearTimeout(masonryResizeTimer);
+                masonryResizeTimer = setTimeout(scheduleProjectMasonry, 120);
+            });
         });
 
         // 初始化过滤器UI
@@ -848,7 +1318,7 @@ function renderFilterUI() {
     
     // 选项C：数据维度图标 (更贴合分类管理器)
     const iconC = `
-    <svg viewBox="0 0 24 24" width="20" height="20" style="flex-shrink:0;">
+    <svg viewBox="0 0 24 24" width="16" height="16" style="flex-shrink:0;">
         <path d="M12 2L2 7L12 12L22 7L12 2Z" fill="#2e7d32" />
         <path d="M2 12L12 17L22 12" stroke="#4caf50" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.7" />
         <path d="M2 17L12 22L22 17" stroke="#4caf50" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.4" />
@@ -899,10 +1369,13 @@ function filterByCategory(code, el) {
                 }
                 if (e.key === 'Escape') {
                     const si = document.getElementById('searchInput');
-                    if (document.getElementById('modalOverlay').classList.contains('show')) {
+                    if (document.getElementById('projectModalOverlay').classList.contains('show')) {
+                        closeProjectModal();
+                    } else if (document.getElementById('modalOverlay').classList.contains('show')) {
                         closeModal();
                     } else if (si.value !== '') {
-                        si.value = ''; render('');
+                        si.value = '';
+                        render('', getActiveCategoryCode());
                         document.getElementById('clearButton').style.display = 'none';
                     }
                 }
@@ -928,13 +1401,237 @@ function filterByCategory(code, el) {
             accounts = data || [];
             
             // 4. 渲染卡片
+            applyViewTabs();
             render();
+        }
+
+        function isProjectAccount(acc) {
+            return typeof acc.system === 'string' && acc.system.includes(PROJECT_SEP);
+        }
+
+        function parseProjectSystem(system) {
+            const i = String(system || '').indexOf(PROJECT_SEP);
+            if (i < 0) return null;
+            return {
+                project: system.slice(0, i).trim(),
+                env: system.slice(i + PROJECT_SEP.length).trim()
+            };
+        }
+
+        function buildProjectSystem(project, env) {
+            return `${project.trim()}${PROJECT_SEP}${env.trim()}`;
+        }
+
+        function getActiveCategoryCode() {
+            const tabs = Array.from(document.querySelectorAll('.tab'));
+            const activeTab = document.querySelector('.tab.active');
+            const activeIndex = tabs.indexOf(activeTab);
+            if (activeIndex > 0 && categories[activeIndex - 1]) {
+                return categories[activeIndex - 1].dict_value_code;
+            }
+            return 'all';
+        }
+
+        function getProjectColumnCount() {
+            const w = window.innerWidth;
+            if (w <= 600) return 1;
+            if (w <= 900) return 2;
+            if (w <= 1200) return 3;
+            return 4;
+        }
+
+        function resetProjectGridStyles() {
+            const grid = document.getElementById('accountsGrid');
+            if (!grid) return;
+            grid.style.position = '';
+            grid.style.height = '';
+            grid.querySelectorAll('.project-card').forEach(card => {
+                card.style.position = '';
+                card.style.width = '';
+                card.style.left = '';
+                card.style.top = '';
+                card.style.margin = '';
+            });
+        }
+
+        function layoutProjectMasonry() {
+            const grid = document.getElementById('accountsGrid');
+            if (!grid || currentView !== 'project') return;
+
+            const cards = [...grid.querySelectorAll('.project-card')].filter((card) => {
+                if (card.classList.contains('sortable-drag')) return false;
+                const style = window.getComputedStyle(card);
+                if (style.display === 'none' || style.visibility === 'hidden' && !card.classList.contains('sortable-ghost')) return false;
+                return true;
+            });
+            if (!cards.length) {
+                grid.style.height = '';
+                return;
+            }
+
+            const gap = 15;
+            const cols = getProjectColumnCount();
+            const gridWidth = grid.clientWidth;
+            const colWidth = (gridWidth - gap * (cols - 1)) / cols;
+
+            cards.forEach(card => {
+                card.style.position = 'absolute';
+                card.style.width = `${colWidth}px`;
+                card.style.margin = '0';
+            });
+
+            const colHeights = Array(cols).fill(0);
+            cards.forEach(card => {
+                const minIdx = colHeights.indexOf(Math.min(...colHeights));
+                card.style.left = `${minIdx * (colWidth + gap)}px`;
+                card.style.top = `${colHeights[minIdx]}px`;
+                colHeights[minIdx] += Math.max(card.offsetHeight, 80) + gap;
+            });
+
+            grid.style.position = 'relative';
+            grid.style.height = `${Math.max(...colHeights) - gap}px`;
+        }
+
+        let masonryResizeTimer = null;
+        function scheduleProjectMasonry() {
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => layoutProjectMasonry());
+            });
+        }
+
+        function applyViewTabs() {
+            const btn = document.getElementById('viewToggleBtn');
+            const label = document.getElementById('viewToggleLabel');
+            if (!btn) return;
+            const isProject = currentView === 'project';
+            btn.classList.toggle('is-project', isProject);
+            btn.title = isProject ? '当前：项目账号 · 点击切换' : '当前：单账号 · 点击切换';
+            if (label) label.textContent = isProject ? '项' : '单';
+            const grid = document.getElementById('accountsGrid');
+            if (grid) {
+                grid.classList.toggle('project-masonry', isProject);
+                if (!isProject) resetProjectGridStyles();
+            }
+            const si = document.getElementById('searchInput');
+            if (si) si.placeholder = isProject ? '搜索项目 / 环境...' : '搜索 (Ctrl+F)...';
+        }
+
+        function toggleView() {
+            const label = document.getElementById('viewToggleLabel');
+            if (label) {
+                label.classList.add('bump');
+                setTimeout(() => {
+                    switchView(currentView === 'project' ? 'single' : 'project');
+                    label.classList.remove('bump');
+                }, 120);
+                return;
+            }
+            switchView(currentView === 'project' ? 'single' : 'project');
+        }
+
+        function switchView(view) {
+            currentView = view;
+            sessionStorage.setItem('accountView', view);
+            applyViewTabs();
+            const si = document.getElementById('searchInput');
+            si.placeholder = view === 'project' ? '搜索项目 / 环境...' : '搜索 (Ctrl+F)...';
+            if (isBatchMode) toggleBatchMode();
+            render(si.value, getActiveCategoryCode());
+        }
+
+        function parseEnvMeta(rawEnv) {
+            const raw = String(rawEnv || '');
+            const i = raw.indexOf(ENV_COLOR_SEP);
+            if (i < 0) {
+                const env = raw.trim();
+                return { env, color: defaultEnvColor(env) };
+            }
+            const env = raw.slice(0, i).trim();
+            let color = raw.slice(i + ENV_COLOR_SEP.length).trim();
+            if (LEGACY_ENV_COLOR[color]) color = LEGACY_ENV_COLOR[color];
+            const valid = ENV_COLOR_PRESETS.some(c => c.id === color);
+            return { env, color: valid ? color : defaultEnvColor(env) };
+        }
+
+        function encodeEnvMeta(env, color) {
+            const safeColor = ENV_COLOR_PRESETS.some(c => c.id === color) ? color : 'other';
+            return `${String(env || '').trim()}${ENV_COLOR_SEP}${safeColor}`;
+        }
+
+        function defaultEnvColor(env) {
+            if (env === '生产') return 'prod';
+            if (env === '测试') return 'test';
+            if (env === '预发') return 'stage';
+            if (env === '开发') return 'indigo';
+            if (env === '演示') return 'demo';
+            return 'other';
+        }
+
+        function envBadgeStyle(colorId) {
+            const preset = ENV_COLOR_PRESETS.find(c => c.id === colorId) || ENV_COLOR_PRESETS[ENV_COLOR_PRESETS.length - 1];
+            const bg = ENV_COLOR_BG[preset.id] || ENV_COLOR_BG.other;
+            return `background:${bg};color:${preset.fg}`;
+        }
+
+        function envBadgeClass(env) {
+            return defaultEnvColor(env);
+        }
+
+        function sortEnvAccounts(list) {
+            return list.slice().sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+        }
+
+        function getProjectGroups(source) {
+            const map = new Map();
+            source.filter(isProjectAccount).forEach(acc => {
+                const parsed = parseProjectSystem(acc.system);
+                if (!parsed || !parsed.project) return;
+                if (!map.has(parsed.project)) {
+                    map.set(parsed.project, {
+                        project: parsed.project,
+                        data_category: acc.data_category,
+                        sort_order: acc.sort_order ?? 0,
+                        accounts: []
+                    });
+                }
+                const group = map.get(parsed.project);
+                const meta = parseEnvMeta(parsed.env);
+                group.accounts.push({
+                    ...acc,
+                    env: meta.env || '未命名',
+                    envColor: meta.color
+                });
+                group.sort_order = Math.min(group.sort_order, acc.sort_order ?? 0);
+            });
+            return Array.from(map.values())
+                .map(g => ({ ...g, accounts: sortEnvAccounts(g.accounts) }))
+                .sort((a, b) => a.sort_order - b.sort_order);
+        }
+
+        function escapeHtml(text) {
+            return String(text ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        function escapeAttr(text) {
+            return String(text ?? '').replace(/'/g, '&#39;').replace(/"/g, '&quot;');
         }
 
         // 修改 render 支持分类过滤
 function render(keyword = '', filterCategory = 'all') {
     const grid = document.getElementById('accountsGrid');
     const lowKey = keyword.trim().toLowerCase();
+
+    if (currentView === 'project') {
+        renderProjectView(grid, keyword, filterCategory);
+        scheduleProjectMasonry();
+        return;
+    }
+
+    resetProjectGridStyles();
 
     // 高亮处理内部函数
     const highlightText = (text) => {
@@ -944,9 +1641,10 @@ function render(keyword = '', filterCategory = 'all') {
         return text.replace(regex, '<span class="highlight">$1</span>');
     };
 
-    // 1. 预筛选：分类过滤
-    let displayList = accounts.filter(acc => 
-        (filterCategory === 'all') || (acc.data_category === filterCategory)
+    // 1. 预筛选：分类过滤 + 排除项目账号
+    let displayList = accounts.filter(acc =>
+        !isProjectAccount(acc) &&
+        ((filterCategory === 'all') || (acc.data_category === filterCategory))
     );
 
     // 2. 排序：搜索匹配项置顶
@@ -1052,6 +1750,421 @@ function render(keyword = '', filterCategory = 'all') {
 
         grid.appendChild(card);
     });
+
+    if (!displayList.length) {
+        grid.innerHTML = `<div class="empty-state"><strong>还没有单账号</strong>点击右下角 + 号新增一张独立卡片</div>`;
+    }
+}
+
+function renderProjectView(grid, keyword = '', filterCategory = 'all') {
+    const lowKey = keyword.trim().toLowerCase();
+    const highlightText = (text) => {
+        if (!lowKey) return escapeHtml(text);
+        const safeKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const regex = new RegExp(`(${safeKeyword})`, 'gi');
+        return escapeHtml(text).replace(regex, '<span class="highlight">$1</span>');
+    };
+
+    let groups = getProjectGroups(accounts).filter(g =>
+        (filterCategory === 'all') || (g.data_category === filterCategory)
+    );
+
+    const groupMatches = (g) => {
+        if (!lowKey) return true;
+        return g.project.toLowerCase().includes(lowKey) ||
+            g.accounts.some(acc =>
+                [acc.env, acc.username, acc.password, acc.url || ''].some(val =>
+                    String(val).toLowerCase().includes(lowKey)
+                )
+            );
+    };
+
+    if (lowKey) {
+        groups.sort((a, b) => Number(groupMatches(b)) - Number(groupMatches(a)));
+    }
+
+    grid.innerHTML = '';
+    if (!groups.length) {
+        grid.innerHTML = `<div class="empty-state"><strong>还没有项目账号</strong>切换到「项目账号」后，点击右下角 + 号，一次录入同一系统的生产 / 测试等多套账号</div>`;
+        return;
+    }
+
+    groups.forEach(group => {
+        const isSearchMatch = groupMatches(group);
+        const categoryInfo = categories.find(c => c.dict_value_code === group.data_category);
+        let displayName = group.data_category || '未分类';
+        let tagBg = "rgba(76, 175, 80, 0.12)";
+        if (categoryInfo) {
+            displayName = categoryInfo.dict_value_name.replace(/<[^>]+>/g, '').trim();
+            if (group.data_category === 'work') tagBg = "rgba(105, 208, 255, 0.1)";
+            else if (group.data_category === 'personal') tagBg = "rgba(255, 155, 105, 0.1)";
+        }
+
+        const card = document.createElement('div');
+        card.className = isSearchMatch ? 'project-card' : 'project-card search-dim';
+        card.dataset.id = group.project;
+        card.dataset.ids = JSON.stringify(group.accounts.map(a => a.id));
+        const linkSvg = `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>`;
+
+        card.innerHTML = `
+            <div class="system-name">
+                <span class="system-name-text">${highlightText(group.project)}</span>
+                <div class="card-icon edit-icon" onclick="openProjectModal(decodeURIComponent('${encodeURIComponent(group.project)}'))">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                </div>
+                <div class="card-icon delete-icon" onclick="toggleDelBar(this, true)">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#f44336" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                </div>
+                <div class="card-icon copy-all-icon" onclick="copyProject(decodeURIComponent('${encodeURIComponent(group.project)}'))">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                </div>
+            </div>
+            <div class="env-list">
+                ${group.accounts.map(acc => {
+                    const isPasswordHit = lowKey && String(acc.password).toLowerCase().includes(lowKey);
+                    const displayPass = isPasswordHit ? highlightText(acc.password) : '••••••';
+                    return `
+                    <div class="env-block">
+                        <div class="env-head">
+                            <div class="env-head-left">
+                                <span class="env-badge" style="${envBadgeStyle(acc.envColor)}">${highlightText(acc.env)}</span>
+                                ${acc.url ? `<div class="env-link-icon" data-url="${escapeAttr(acc.url)}" title="复制访问地址">${linkSvg}</div>` : ''}
+                            </div>
+                            <button type="button" class="env-copy" onclick="copyEnv('${acc.id}')">复制此环境</button>
+                        </div>
+                        <div class="account-item">
+                            <div class="item-label">账号</div>
+                            <div class="item-value" onclick="copyAccountField('${acc.id}', 'username')">${highlightText(acc.username)}</div>
+                        </div>
+                        <div class="account-item">
+                            <div class="item-label">密码</div>
+                            <div class="password-wrapper">
+                                <div class="item-value password-value"
+                                     data-account-id="${acc.id}"
+                                     data-raw-password="${escapeAttr(acc.password)}"
+                                     data-is-shown="${isPasswordHit ? 'true' : 'false'}"
+                                     onclick="copyAccountField('${acc.id}', 'password')">
+                                     ${displayPass}
+                                </div>
+                                <div class="password-toggle-icon" onclick="togglePassword(this, event)">
+                                    ${isPasswordHit
+                                        ? `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`
+                                        : `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`}
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+                }).join('')}
+            </div>
+            <div class="category-tag" style="background: ${tagBg}; color: #2e7d32;">${escapeHtml(displayName)}</div>
+            <div class="delete-bar">
+                <span>删除整个项目及全部环境？</span>
+                <div style="display:flex; gap:10px;">
+                    <button class="mini-btn-del btn-cancel-soft" onclick="toggleDelBar(this, false)">取消</button>
+                    <button class="mini-btn-del btn-confirm-soft" onclick="doDeleteProject(decodeURIComponent('${encodeURIComponent(group.project)}'))">确认</button>
+                </div>
+            </div>
+        `;
+
+        card.querySelectorAll('.env-link-icon').forEach((el) => {
+            const url = el.dataset.url;
+            if (!url) return;
+            el.onmouseenter = (e) => showTooltip(e, url);
+            el.onmouseleave = hideTooltip;
+            el.onclick = function(e) {
+                e.stopPropagation();
+                this.classList.remove('link-ripple');
+                void this.offsetWidth;
+                this.classList.add('link-ripple');
+                copyText(url, '访问地址');
+            };
+        });
+        grid.appendChild(card);
+    });
+}
+
+function fillCategorySelect(selectEl, selected = '') {
+    selectEl.innerHTML = '<option value="" disabled selected>请选择分类</option>';
+    categories.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.dict_value_code;
+        opt.textContent = c.dict_value_name;
+        if (c.dict_value_code === selected) opt.selected = true;
+        selectEl.appendChild(opt);
+    });
+}
+
+function addEnvRow(data = {}) {
+    const wrap = document.getElementById('envRows');
+    const meta = parseEnvMeta(data.env || '');
+    const envValue = data.envName || meta.env || '';
+    const color = data.color || data.envColor || (envValue ? meta.color : unusedEnvColor());
+    const shouldFocus = !data.id && !envValue && wrap.children.length > 0;
+    const row = document.createElement('div');
+    row.className = 'env-row';
+    row.dataset.id = data.id || '';
+    row.innerHTML = `
+        <div class="env-row-top">
+            <div class="form-group env-name-field" style="margin:0;">
+                <label class="required">环境名称</label>
+                <input type="text" class="env-name" value="${escapeAttr(envValue)}" placeholder="例如：生产、测试、灰度">
+            </div>
+            <div class="form-group" style="margin:0;">
+                <label>标签颜色</label>
+                <div class="env-color-dots" data-color="${color}">
+                    ${ENV_COLOR_PRESETS.map(c => `
+                        <button type="button" class="env-color-dot ${c.id === color ? 'active' : ''}" data-color="${c.id}" style="color:${c.fg};background:${c.fg}" title="${c.label}" onclick="selectEnvColor(this)"></button>
+                    `).join('')}
+                </div>
+            </div>
+            <div class="env-row-actions">
+                <button type="button" class="env-sort-btn env-sort-up" onclick="moveEnvRow(this, -1)" title="上移">↑</button>
+                <button type="button" class="env-sort-btn env-sort-down" onclick="moveEnvRow(this, 1)" title="下移">↓</button>
+                <button type="button" class="mini-del-env" onclick="removeEnvRow(this)">删除</button>
+            </div>
+        </div>
+        <div class="env-row-fields">
+            <div class="form-group" style="margin:0;">
+                <label class="required">登录账号</label>
+                <input type="text" class="env-user" value="${escapeAttr(data.username || '')}">
+            </div>
+            <div class="form-group" style="margin:0;">
+                <label class="required">登录密码</label>
+                <input type="text" class="env-pass" value="${escapeAttr(data.password || '')}">
+            </div>
+            <div class="form-group full" style="margin:0;">
+                <label>访问地址 (URL)</label>
+                <input type="text" class="env-url" value="${escapeAttr(data.url || '')}" placeholder="该环境自己的地址，可空">
+            </div>
+        </div>
+    `;
+    wrap.appendChild(row);
+    if (shouldFocus) row.querySelector('.env-name')?.focus();
+    refreshEnvSortButtons();
+}
+
+function unusedEnvColor() {
+    const used = collectEnvRows().map(r => r.color);
+    const next = ENV_COLOR_PRESETS.find(c => !used.includes(c.id));
+    return (next || ENV_COLOR_PRESETS[ENV_COLOR_PRESETS.length - 1]).id;
+}
+
+function selectEnvColor(btn) {
+    const wrap = btn.closest('.env-color-dots');
+    if (!wrap) return;
+    wrap.querySelectorAll('.env-color-dot').forEach((dot) => dot.classList.remove('active'));
+    btn.classList.add('active');
+    wrap.dataset.color = btn.dataset.color;
+}
+
+function removeEnvRow(btn) {
+    const wrap = document.getElementById('envRows');
+    if (wrap.children.length <= 1) {
+        showToast('至少保留一个环境');
+        return;
+    }
+    btn.closest('.env-row').remove();
+    refreshEnvSortButtons();
+}
+
+function moveEnvRow(btn, dir) {
+    const row = btn.closest('.env-row');
+    const wrap = document.getElementById('envRows');
+    if (!row || !wrap) return;
+    const target = dir < 0 ? row.previousElementSibling : row.nextElementSibling;
+    if (!target) return;
+    if (dir < 0) wrap.insertBefore(row, target);
+    else wrap.insertBefore(target, row);
+    refreshEnvSortButtons();
+    row.scrollIntoView({ block: 'nearest' });
+}
+
+function refreshEnvSortButtons() {
+    const rows = Array.from(document.querySelectorAll('#envRows .env-row'));
+    rows.forEach((row, index) => {
+        const up = row.querySelector('.env-sort-up');
+        const down = row.querySelector('.env-sort-down');
+        if (up) up.disabled = index === 0;
+        if (down) down.disabled = index === rows.length - 1;
+    });
+}
+
+function collectEnvRows() {
+    return Array.from(document.querySelectorAll('#envRows .env-row')).map(row => {
+        const colorWrap = row.querySelector('.env-color-dots');
+        return {
+            id: row.dataset.id || '',
+            env: (row.querySelector('.env-name')?.value || '').trim(),
+            color: colorWrap?.dataset.color || 'other',
+            username: row.querySelector('.env-user').value.trim(),
+            password: row.querySelector('.env-pass').value.trim(),
+            url: row.querySelector('.env-url').value.trim()
+        };
+    });
+}
+
+function openProjectModal(projectName = null) {
+    const form = document.getElementById('projectForm');
+    form.reset();
+    document.getElementById('envRows').innerHTML = '';
+    fillCategorySelect(document.getElementById('projectCategory'));
+    editingProjectIds = [];
+
+    if (projectName) {
+        const group = getProjectGroups(accounts).find(g => g.project === projectName);
+        if (group) {
+            document.getElementById('editingProjectName').value = group.project;
+            document.getElementById('projectName').value = group.project;
+            document.getElementById('projectCategory').value = group.data_category || '';
+            document.getElementById('projectModalTitle').innerText = '编辑项目账号';
+            editingProjectIds = group.accounts.map(a => String(a.id));
+            group.accounts.forEach(acc => addEnvRow(acc));
+        }
+    } else {
+        document.getElementById('editingProjectName').value = '';
+        document.getElementById('projectModalTitle').innerText = '批量录入项目账号';
+        addEnvRow({ env: '生产' });
+        addEnvRow({ env: '测试' });
+    }
+    document.getElementById('projectModalOverlay').classList.add('show');
+}
+
+function closeProjectModal() {
+    document.getElementById('projectModalOverlay').classList.remove('show');
+}
+
+async function saveProject(e) {
+    if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    const projectName = document.getElementById('projectName').value.trim();
+    const data_category = document.getElementById('projectCategory').value;
+    const oldName = document.getElementById('editingProjectName').value.trim();
+    const rows = collectEnvRows();
+
+    if (!projectName || !data_category) {
+        showToast('请填写项目名称和分类');
+        return false;
+    }
+    if (projectName.includes(PROJECT_SEP)) {
+        showToast('项目名称不要包含 “ :: ”');
+        return false;
+    }
+
+    const filled = rows.filter(r => r.env || r.username || r.password);
+    if (!filled.length) {
+        showToast('请至少录入一套环境账号');
+        return false;
+    }
+
+    for (const row of filled) {
+        if (!row.env || !row.username || !row.password) {
+            showToast('每个环境都需要填写环境名、账号和密码');
+            return false;
+        }
+        if (row.env.includes(PROJECT_SEP) || row.env.includes(ENV_COLOR_SEP)) {
+            showToast('环境名称不要包含特殊分隔符');
+            return false;
+        }
+    }
+
+    const envNames = filled.map(r => r.env);
+    if (new Set(envNames).size !== envNames.length) {
+        showToast('同一个项目里环境名称不能重复');
+        return false;
+    }
+
+    const conflict = accounts.some(acc => {
+        const parsed = parseProjectSystem(acc.system);
+        if (!parsed) return false;
+        if (editingProjectIds.includes(String(acc.id))) return false;
+        return parsed.project === projectName;
+    });
+    if (conflict && projectName !== oldName) {
+        showToast('已存在同名项目，请换一个名称');
+        return false;
+    }
+
+    const remainingIds = new Set(filled.filter(r => r.id).map(r => String(r.id)));
+    const toDelete = editingProjectIds.filter(id => !remainingIds.has(id));
+    const maxSort = accounts.reduce((m, a) => Math.max(m, a.sort_order || 0), 0);
+    const existingSorts = filled
+        .filter((r) => r.id)
+        .map((r) => (accounts.find((a) => String(a.id) === String(r.id)) || {}).sort_order)
+        .filter((n) => Number.isFinite(n));
+    const sortBase = existingSorts.length ? Math.min(...existingSorts) : maxSort + 1;
+
+    try {
+        for (const id of toDelete) {
+            const { error } = await supabaseClient.from('accounts').delete().eq('id', id);
+            if (error) throw error;
+        }
+
+        for (let i = 0; i < filled.length; i++) {
+            const row = filled[i];
+            const payload = {
+                system: buildProjectSystem(projectName, encodeEnvMeta(row.env, row.color)),
+                username: row.username,
+                password: row.password,
+                url: row.url,
+                data_category,
+                sort_order: sortBase + i
+            };
+            if (row.id) {
+                const { error } = await supabaseClient.from('accounts').update(payload).eq('id', row.id);
+                if (error) throw error;
+            } else {
+                const { error } = await supabaseClient.from('accounts').insert([payload]);
+                if (error) throw error;
+            }
+        }
+
+        showToast(oldName ? '项目已更新' : `已保存 ${filled.length} 套环境账号`);
+        closeProjectModal();
+        await loadData();
+    } catch (err) {
+        console.error('保存项目失败:', err);
+        showToast('保存失败: ' + (err.message || '未知错误'));
+    }
+    return false;
+}
+
+function copyProject(projectName) {
+    const group = getProjectGroups(accounts).find(g => g.project === projectName);
+    if (!group) return;
+    const text = [`项目：${group.project}`, ...group.accounts.map(acc => {
+        let block = `${acc.env}\n账号：${acc.username}\n密码：${acc.password}`;
+        if (acc.url) block += `\n地址：${acc.url}`;
+        return block;
+    })].join('\n\n');
+    navigator.clipboard.writeText(text).then(() => showToast('项目全部环境已复制'));
+}
+
+function copyEnv(id) {
+    const acc = accounts.find(a => String(a.id) === String(id));
+    if (!acc) return;
+    const parsed = parseProjectSystem(acc.system) || { project: acc.system, env: '' };
+    const meta = parseEnvMeta(parsed.env);
+    let info = `项目：${parsed.project}\n环境：${meta.env}\n账号：${acc.username}\n密码：${acc.password}`;
+    if (acc.url) info += `\n地址：${acc.url}`;
+    navigator.clipboard.writeText(info).then(() => showToast(`${meta.env || '该环境'}已复制`));
+}
+
+async function doDeleteProject(projectName) {
+    const group = getProjectGroups(accounts).find(g => g.project === projectName);
+    if (!group) return;
+    try {
+        for (const acc of group.accounts) {
+            const { error } = await supabaseClient.from('accounts').delete().eq('id', acc.id);
+            if (error) throw error;
+        }
+        showToast('项目已删除');
+        await loadData();
+    } catch (err) {
+        showToast('删除失败');
+    }
 }
 
 function togglePassword(iconEl, event) {
@@ -1060,7 +2173,8 @@ function togglePassword(iconEl, event) {
     const wrapper = iconEl.parentElement;
     const valueEl = wrapper.querySelector('.item-value');
     const isCurrentlyShown = valueEl.dataset.isShown === 'true';
-    const rawPassword = valueEl.dataset.rawPassword;
+    const linked = accounts.find(a => String(a.id) === String(valueEl.dataset.accountId));
+    const rawPassword = linked ? linked.password : valueEl.dataset.rawPassword;
     const keyword = document.getElementById('searchInput').value.trim();
     
     if (isCurrentlyShown) {
@@ -1081,6 +2195,8 @@ function togglePassword(iconEl, event) {
         valueEl.dataset.isShown = 'true';
         iconEl.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
     }
+
+    if (currentView === 'project') scheduleProjectMasonry();
 }
 
 
@@ -1109,7 +2225,7 @@ function setupCardEvents(card, acc) {
             tip.style.left = x + 'px'; tip.style.top = y + 'px';
         }
         function hideTooltip() { document.getElementById('globalTooltip').classList.remove('show'); }
-        function toggleDelBar(el, show) { el.closest('.account-card').querySelector('.delete-bar').classList.toggle('active', show); }
+        function toggleDelBar(el, show) { el.closest('.account-card, .project-card').querySelector('.delete-bar').classList.toggle('active', show); }
         async function doDelete(id) { 
             const event = window.event;
             const target = event ? event.currentTarget : null;
@@ -1129,33 +2245,19 @@ function setupCardEvents(card, acc) {
             // 搜索时，如果当前有分类选中，也要保持分类过滤
             si.oninput = (e) => {
                 document.getElementById('clearButton').style.display = e.target.value ? 'flex' : 'none';
-                
-                // 获取当前选中的分类 code
-                const activeTab = document.querySelector('.tab.active');
-                // 根据您的逻辑，'全部'是第一个 tab，后面是 categories 数组
-                const tabs = Array.from(document.querySelectorAll('.tab'));
-                const activeIndex = tabs.indexOf(activeTab);
-                
-                let activeCode = 'all';
-                if (activeIndex > 0) {
-                    activeCode = categories[activeIndex - 1].dict_value_code;
-                }
-                
-                render(e.target.value, activeCode);
+                render(e.target.value, getActiveCategoryCode());
             };
             document.getElementById('clearButton').onclick = function() { 
                 si.value = ''; 
-                // 同样保持当前分类
-                const tabs = document.querySelectorAll('.tab');
-                let activeCode = 'all';
-                tabs.forEach((t, i) => { 
-                    if(t.classList.contains('active') && i > 0) activeCode = categories[i-1].dict_value_code; 
-                });
-                render('', activeCode); 
+                render('', getActiveCategoryCode()); 
                 this.style.display = 'none'; si.focus(); 
             };
-            document.getElementById('addBtn').onclick = () => openModal();
+            document.getElementById('addBtn').onclick = () => {
+                if (currentView === 'project') openProjectModal();
+                else openModal();
+            };
             document.getElementById('accountForm').onsubmit = saveAccount;
+            document.getElementById('projectForm').onsubmit = saveProject;
         }
 
         async function handleSave(e) {
@@ -1228,6 +2330,10 @@ async function saveAccount(e) {
         showToast('请完整填写必填项（包括分类）');
         return false;
     }
+    if (system.includes(PROJECT_SEP)) {
+        showToast('单账号不要使用 “ :: ”，多环境请到「项目账号」页签录入');
+        return false;
+    }
 
     const accountData = { 
         system, 
@@ -1272,6 +2378,12 @@ window.onclick = function(event) {
 };
         function closeModal() { document.getElementById('modalOverlay').classList.remove('show'); }
         
+        function copyAccountField(id, field) {
+            const acc = accounts.find(a => String(a.id) === String(id));
+            if (!acc) return;
+            const labels = { username: '账号', password: '密码', url: '访问地址' };
+            copyText(acc[field] || '', labels[field] || field);
+        }
         function copyText(t, type) {
             const event = window.event;
             const target = event ? event.currentTarget : null;
@@ -1334,22 +2446,58 @@ window.onclick = function(event) {
         }
 
         function initDraggable() {
-            Sortable.create(document.getElementById('accountsGrid'), {
-                animation: 300,
+            const grid = document.getElementById('accountsGrid');
+            if (!grid) return;
+            Sortable.create(grid, {
+                animation: 280,
                 handle: '.system-name',
+                draggable: '.account-card, .project-card',
                 ghostClass: 'sortable-ghost',
                 chosenClass: 'sortable-chosen',
                 dragClass: 'sortable-drag',
                 easing: "cubic-bezier(0.25, 1, 0.5, 1)",
                 fallbackTolerance: 3,
+                swapThreshold: 0.45,
+                invertSwap: true,
+                onStart() {
+                    if (currentView === 'project') {
+                        grid.classList.add('is-sorting');
+                        requestAnimationFrame(layoutProjectMasonry);
+                    }
+                },
+                onMove() {
+                    if (isBatchMode) return false;
+                    if (currentView === 'project') {
+                        requestAnimationFrame(layoutProjectMasonry);
+                    }
+                    return true;
+                },
+                onChange() {
+                    if (currentView === 'project') layoutProjectMasonry();
+                },
                 onEnd: async function () {
-                    const cardEls = Array.from(document.querySelectorAll('.account-card'));
-                    const updates = cardEls.map((card, index) => 
-                        supabaseClient.from('accounts').update({ sort_order: index }).eq('id', card.dataset.id)
-                    );
+                    grid.classList.remove('is-sorting');
+                    const updates = [];
+                    if (currentView === 'project') {
+                        const cardEls = Array.from(document.querySelectorAll('.project-card'))
+                            .filter((card) => !card.classList.contains('sortable-ghost') && !card.classList.contains('sortable-drag'));
+                        cardEls.forEach((card, index) => {
+                            const ids = JSON.parse(card.dataset.ids || '[]');
+                            ids.forEach((id, i) => {
+                                updates.push(supabaseClient.from('accounts').update({ sort_order: index * 20 + i }).eq('id', id));
+                            });
+                        });
+                        scheduleProjectMasonry();
+                    } else {
+                        const cardEls = Array.from(document.querySelectorAll('.account-card'));
+                        cardEls.forEach((card, index) => {
+                            updates.push(supabaseClient.from('accounts').update({ sort_order: index }).eq('id', card.dataset.id));
+                        });
+                    }
                     await Promise.all(updates);
                     const { data } = await supabaseClient.from('accounts').select('*').order('sort_order', { ascending: true });
                     accounts = data || [];
+                    if (currentView === 'project') scheduleProjectMasonry();
                 }
             });
         }
@@ -1381,7 +2529,7 @@ document.getElementById('accountsGrid').addEventListener('click', function(e) {
     if (!isBatchMode) return;
     
     // 找到被点击的卡片
-    const card = e.target.closest('.account-card');
+    const card = e.target.closest('.account-card, .project-card');
     if (!card) return;
 
     const id = card.dataset.id;
@@ -1395,10 +2543,6 @@ document.getElementById('accountsGrid').addEventListener('click', function(e) {
     updateBatchCount();
 });
 
-function updateBatchCount() {
-    document.getElementById('selectedCount').innerText = `已选择 ${selectedIds.size} 项`;
-}
-
 // 执行批量复制
 function execBatchCopy() {
     if (selectedIds.size === 0) {
@@ -1406,46 +2550,56 @@ function execBatchCopy() {
         return;
     }
 
-    // 从你原有的 accounts 数组中查找数据
-    const selectedData = accounts.filter(acc => selectedIds.has(String(acc.id)));
-    
-    const textToCopy = selectedData.map(acc => 
-        `系统: ${acc.system}\n账号: ${acc.username}\n密码: ${acc.password}\n地址: ${acc.url || '无'}`
-    ).join('\n\n------------------------\n\n');
+    let textToCopy = '';
+    let count = 0;
+    if (currentView === 'project') {
+        const groups = getProjectGroups(accounts).filter(g => selectedIds.has(g.project));
+        count = groups.length;
+        textToCopy = groups.map(g => {
+            const blocks = [`项目：${g.project}`];
+            g.accounts.forEach(acc => {
+                let block = `${acc.env}\n账号：${acc.username}\n密码：${acc.password}`;
+                if (acc.url) block += `\n地址：${acc.url}`;
+                blocks.push(block);
+            });
+            return blocks.join('\n\n');
+        }).join('\n\n========================\n\n');
+    } else {
+        const selectedData = accounts.filter(acc => selectedIds.has(String(acc.id)));
+        count = selectedData.length;
+        textToCopy = selectedData.map(acc =>
+            `系统: ${acc.system}\n账号: ${acc.username}\n密码: ${acc.password}\n地址: ${acc.url || '无'}`
+        ).join('\n\n------------------------\n\n');
+    }
 
     navigator.clipboard.writeText(textToCopy).then(() => {
-        showToast(`成功复制 ${selectedData.length} 项`);
-        toggleBatchMode(); // 完成后自动退出
+        showToast(`成功复制 ${count} 项`);
+        toggleBatchMode();
     });
 }
 
-// 【新增】全选/取消全选逻辑
+function visibleBatchCards() {
+    return document.querySelectorAll('.account-card, .project-card');
+}
+
 function selectAllBatch() {
-    // 获取当前页面上展示的所有卡片（考虑了搜索过滤后的情况）
-    const allVisibleCards = document.querySelectorAll('.account-card');
+    const allVisibleCards = visibleBatchCards();
     
-    // 如果已经全选了，则再次点击为“取消全选”
     if (selectedIds.size === allVisibleCards.length && allVisibleCards.length > 0) {
         selectedIds.clear();
         allVisibleCards.forEach(card => card.classList.remove('selected-for-batch'));
     } else {
-        // 全选当前可见的卡片
         allVisibleCards.forEach(card => {
-            const id = card.dataset.id;
-            selectedIds.add(id);
+            selectedIds.add(card.dataset.id);
             card.classList.add('selected-for-batch');
         });
     }
     updateBatchCount();
 }
 
-// 【优化】修改之前的 updateBatchCount，增加动态全选文字反馈
 function updateBatchCount() {
     const countSpan = document.getElementById('selectedCount');
-    const allVisibleCards = document.querySelectorAll('.account-card');
-    countSpan.innerText = `已选择 ${selectedIds.size} 项`;
-    
-    // 可选：动态改变全选按钮文字（如果需要更精细，可以给全选按钮加个ID）
+    if (countSpan) countSpan.innerText = `已选择 ${selectedIds.size} 项`;
 }
     </script>
 <div id="batchToolbar" style="display:none; position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:white; padding:15px 35px; border-radius:50px; box-shadow:0 10px 40px rgba(0,0,0,0.2); z-index:10001; align-items:center; gap:20px;">
@@ -1459,4 +2613,3 @@ function updateBatchCount() {
 </div>
 </body>
 </html>
-
