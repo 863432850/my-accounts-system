@@ -1,0 +1,44 @@
+name: Keep Supabase Alive
+
+on:
+  schedule:
+    # 每 3 天 08:00 UTC（北京时间 16:00）。月内按 1、4、7… 触发，仍远小于 7 天暂停窗口。
+    - cron: "0 8 */3 * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - name: Ping Supabase accounts table
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${SUPABASE_URL:-}" ] || [ -z "${SUPABASE_ANON_KEY:-}" ]; then
+            echo "缺少仓库 Secrets：请添加 SUPABASE_URL 和 SUPABASE_ANON_KEY"
+            exit 1
+          fi
+
+          URL="${SUPABASE_URL%/}/rest/v1/accounts?select=id&limit=1"
+          HTTP_CODE="$(curl -sS -o /tmp/supabase-keepalive.json -w "%{http_code}" "$URL" \
+            -H "apikey: ${SUPABASE_ANON_KEY}" \
+            -H "Authorization: Bearer ${SUPABASE_ANON_KEY}" \
+            -H "Accept: application/json")"
+
+          echo "HTTP ${HTTP_CODE}"
+          echo "响应预览："
+          head -c 400 /tmp/supabase-keepalive.json || true
+          echo
+
+          if [ "${HTTP_CODE}" -lt 200 ] || [ "${HTTP_CODE}" -ge 300 ]; then
+            echo "保活失败：需要一次真正打到数据库的成功请求"
+            exit 1
+          fi
+
+          echo "保活成功"
