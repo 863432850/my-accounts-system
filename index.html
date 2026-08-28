@@ -946,6 +946,48 @@ position: absolute;
             opacity: 1;
             background: rgba(33, 150, 243, 0.12);
         }
+        .env-open-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 22px;
+            height: 22px;
+            color: #ef6c00;
+            cursor: pointer;
+            opacity: 0.9;
+            border-radius: 6px;
+            flex-shrink: 0;
+            position: relative;
+            transition: color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+        }
+        .env-open-icon:hover {
+            opacity: 1;
+            color: #e65100;
+            background: rgba(239, 108, 0, 0.12);
+            transform: translateY(-0.5px);
+        }
+        .env-open-icon svg {
+            display: block;
+        }
+        .toast.show.toast-with-action {
+            pointer-events: auto;
+            cursor: default;
+        }
+        .toast-action {
+            margin-left: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.75);
+            background: rgba(255, 255, 255, 0.22);
+            color: #fff;
+            border-radius: 999px;
+            padding: 4px 10px;
+            font-size: 12px;
+            font-weight: 800;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .toast-action:hover {
+            background: rgba(255, 255, 255, 0.35);
+        }
         .env-badge {
             display: inline-flex;
             align-items: center;
@@ -982,7 +1024,8 @@ position: absolute;
         .batch-mode .project-card .item-value,
         .batch-mode .project-card .password-toggle-icon,
         .batch-mode .project-card .link-icon,
-        .batch-mode .project-card .env-link-icon {
+        .batch-mode .project-card .env-link-icon,
+        .batch-mode .project-card .env-open-icon {
             pointer-events: none;
             opacity: 0.5;
         }
@@ -1805,6 +1848,7 @@ function renderProjectView(grid, keyword = '', filterCategory = 'all') {
         card.dataset.id = group.project;
         card.dataset.ids = JSON.stringify(group.accounts.map(a => a.id));
         const linkSvg = `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>`;
+        const openSvg = `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"></path><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"></path><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"></path><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"></path></svg>`;
 
         card.innerHTML = `
             <div class="system-name">
@@ -1828,7 +1872,10 @@ function renderProjectView(grid, keyword = '', filterCategory = 'all') {
                         <div class="env-head">
                             <div class="env-head-left">
                                 <span class="env-badge" style="${envBadgeStyle(acc.envColor)}">${highlightText(acc.env)}</span>
-                                ${acc.url ? `<div class="env-link-icon" data-url="${escapeAttr(acc.url)}" title="复制访问地址">${linkSvg}</div>` : ''}
+                                ${acc.url ? `
+                                    <div class="env-link-icon" data-url="${escapeAttr(acc.url)}" title="复制访问地址">${linkSvg}</div>
+                                    <div class="env-open-icon" data-id="${acc.id}" title="打开链接，并依次复制账号 / 密码">${openSvg}</div>
+                                ` : ''}
                             </div>
                             <button type="button" class="env-copy" onclick="copyEnv('${acc.id}')">复制此环境</button>
                         </div>
@@ -1877,6 +1924,17 @@ function renderProjectView(grid, keyword = '', filterCategory = 'all') {
                 void this.offsetWidth;
                 this.classList.add('link-ripple');
                 copyText(url, '访问地址');
+            };
+        });
+        card.querySelectorAll('.env-open-icon').forEach((el) => {
+            el.onmouseenter = (e) => showTooltip(e, '打开页面 · 先复制账号，再点提示复制密码');
+            el.onmouseleave = hideTooltip;
+            el.onclick = function(e) {
+                e.stopPropagation();
+                this.classList.remove('link-ripple');
+                void this.offsetWidth;
+                this.classList.add('link-ripple');
+                openEnvWithCredentials(this.dataset.id);
             };
         });
         grid.appendChild(card);
@@ -2420,6 +2478,66 @@ window.onclick = function(event) {
                 window.open(url.startsWith('http') ? url : `https://${url}`, '_blank');
             }, 100);
         }
+
+        /** 同步复制：在点击手势内立刻写入，避免 Clipboard API 弹权限框 */
+        function copyToClipboardSync(text) {
+            const value = text == null ? '' : String(text);
+            try {
+                const ta = document.createElement('textarea');
+                ta.value = value;
+                ta.setAttribute('readonly', '');
+                ta.style.cssText = 'position:fixed;left:-9999px;top:0;opacity:0;';
+                document.body.appendChild(ta);
+                ta.focus();
+                ta.select();
+                ta.setSelectionRange(0, ta.value.length);
+                const ok = document.execCommand('copy');
+                document.body.removeChild(ta);
+                return !!ok;
+            } catch (_) {
+                return false;
+            }
+        }
+
+        function openEnvWithCredentials(id) {
+            const acc = accounts.find((a) => String(a.id) === String(id));
+            if (!acc) return;
+            if (!acc.url) {
+                showToast('该环境没有访问地址');
+                return;
+            }
+            const url = acc.url.startsWith('http') ? acc.url : `https://${acc.url}`;
+            // 必须先复制再打开：window.open 会消耗用户手势，再调 Clipboard API 易弹权限
+            const copied = copyToClipboardSync(acc.username || '');
+            window.open(url, '_blank');
+            if (copied) {
+                showCredentialAssistToast(acc.password);
+            } else {
+                showToast('已打开页面，但复制账号失败');
+            }
+        }
+
+        function showCredentialAssistToast(password) {
+            const t = document.getElementById('toast');
+            if (!t) return;
+            if (t._hideTimer) clearTimeout(t._hideTimer);
+            t.classList.add('show', 'toast-with-action');
+            t.innerHTML = `已打开页面，账号已复制 <button type="button" class="toast-action">复制密码</button>`;
+            const btn = t.querySelector('.toast-action');
+            if (btn) {
+                btn.onclick = (e) => {
+                    e.stopPropagation();
+                    if (copyToClipboardSync(password || '')) {
+                        showToast('密码已复制');
+                    } else {
+                        showToast('复制密码失败');
+                    }
+                };
+            }
+            t._hideTimer = setTimeout(() => {
+                t.classList.remove('show', 'toast-with-action');
+            }, 6000);
+        }
         function copyAll(id) { 
             const event = window.event;
             const target = event ? event.currentTarget : null;
@@ -2437,7 +2555,15 @@ window.onclick = function(event) {
                 }
             });
         }
-        function showToast(m) { const t = document.getElementById('toast'); t.innerText = m; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2000); }
+        function showToast(m) {
+            const t = document.getElementById('toast');
+            if (!t) return;
+            if (t._hideTimer) clearTimeout(t._hideTimer);
+            t.classList.remove('toast-with-action');
+            t.textContent = m;
+            t.classList.add('show');
+            t._hideTimer = setTimeout(() => t.classList.remove('show'), 2000);
+        }
         function updateTime() {
             const now = new Date();
             document.getElementById('timeDisplay').innerText = now.toTimeString().split(' ')[0];
